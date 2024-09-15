@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import { useStore } from "@/hooks/use-store";
-// import { Footer } from "@/components/layout/footer";
+import { Footer } from "@/components/layout/footer";
 import { Sidebar } from "@/components/layout/sidebar";
 import { useSidebarToggle } from "@/hooks/use-sidebar-toggle";
 
@@ -26,14 +26,14 @@ export default function GeneralLayout({
       >
         {children}
       </main>
-      {/* <footer
+      <footer
         className={cn(
           "transition-[margin-left] ease-in-out duration-300",
           sidebar?.isOpen === false ? "lg:ml-[90px]" : "lg:ml-72"
         )}
       >
         <Footer />
-      </footer> */}
+      </footer>
     </>
   );
 }

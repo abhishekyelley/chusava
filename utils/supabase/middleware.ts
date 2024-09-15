@@ -2,13 +2,14 @@ import { paths } from "@/lib/constants";
 import { createServerClient } from "@supabase/ssr";
 import { NextRequest, NextResponse } from "next/server";
 import { generateCases } from "../middleware";
+import { Database } from "@/types/supabase";
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
   });
 
-  const supabase = createServerClient(
+  const supabase = createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
@@ -34,7 +35,7 @@ export async function updateSession(request: NextRequest) {
 
   const url = request.nextUrl.clone();
 
-  const { UserGoingToProtected } = generateCases(url.pathname);
+  const { UserGoingToRoot, UserGoingToAuth, UserGoingToProtected } = generateCases(url.pathname);
 
   if (!user) {
     if (UserGoingToProtected) {
@@ -42,8 +43,11 @@ export async function updateSession(request: NextRequest) {
       return NextResponse.redirect(url);
     }
   }
-  else if (user) {
-    console.log("user");
+  else {
+    if (UserGoingToAuth || UserGoingToRoot) {
+      url.pathname = paths.dashboard;
+      return NextResponse.redirect(url);
+    }
   }
 
   return supabaseResponse;

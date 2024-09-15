@@ -12,11 +12,29 @@ export function Footer() {
             rel="noopener noreferrer"
             className="font-medium underline underline-offset-4"
           >
+            NextJs
+          </Link>
+          {", "}
+          <Link
+            href="https://ui.shadcn.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium underline underline-offset-4"
+          >
             shadcn/ui
+          </Link>
+          {" and "}
+          <Link
+            href="https://github.com/salimi-my/shadcn-ui-sidebar"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium underline underline-offset-4"
+          >
+            shadcn-ui-sidebar
           </Link>
           . The source code is available on{" "}
           <Link
-            href="https://github.com/salimi-my/shadcn-ui-sidebar"
+            href="https://github.com/abhishekyelley/chusava"
             target="_blank"
             rel="noopener noreferrer"
             className="font-medium underline underline-offset-4"

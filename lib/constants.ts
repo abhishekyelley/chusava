@@ -2,6 +2,7 @@ const paths = {
   dashboard: "/dashboard",
   account: "/account",
   login: "/login",
+  signup: "/signup",
   about: "/about",
 };
 Object.freeze(paths);
