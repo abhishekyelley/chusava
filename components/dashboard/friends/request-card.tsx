@@ -4,7 +4,15 @@ import {
   AvatarImage,
 } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Check, LoaderCircle, Trash2, User, X } from "lucide-react";
+import {
+  Check,
+  Copy,
+  LoaderCircle,
+  Trash2,
+  User,
+  UserMinus,
+  X,
+} from "lucide-react";
 import Link from "next/link";
 import {
   Dialog,
@@ -25,10 +33,22 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { FriendRequestsType } from "@/types/dashboard";
 import { AlertDialogWrapper } from "@/components/common/alert";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import axios from "@/lib/axios";
 import { ErrorResponse } from "@/types/api/error";
 import { Database } from "@/types/supabase";
+import { Input } from "@/components/ui/input";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { IconFromUrl } from "@/components/common/icon-from-url";
 
 const iconClass =
   "mr-0 md:mr-2 h-[16px] w-[16px] md:h-[24px] md:w-[24px]";
@@ -37,6 +57,7 @@ type FriendsType = Database["public"]["Tables"]["friends"]["Row"];
 
 export function RequestCard({
   friendship_id,
+  user_id,
   username,
   first_name,
   last_name,
@@ -45,6 +66,7 @@ export function RequestCard({
   type,
 }: {
   friendship_id: string;
+  user_id: string;
   username: string;
   first_name: string;
   last_name: string;
@@ -53,6 +75,13 @@ export function RequestCard({
   type: FriendRequestsType;
 }) {
   const queryClient = useQueryClient();
+  const user = useQuery({
+    queryKey: ["users", user_id],
+    queryFn: async () => {
+      const response = await axios.get("/api/user/" + user_id);
+      return response.data;
+    },
+  });
   const { mutate: deleteMutate, isPending: deleteIsPending } =
     useMutation<null, ErrorResponse, string>({
       mutationFn: async (friendship_id: string) => {
@@ -63,7 +92,7 @@ export function RequestCard({
       },
       onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey: ["dashboard", "friends"],
+          queryKey: ["dashboard", "users"],
         });
       },
       onError: (error) => {
@@ -81,7 +110,7 @@ export function RequestCard({
       },
       onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey: ["dashboard", "friends"],
+          queryKey: ["dashboard", "users"],
         });
       },
       onError: (error) => {
@@ -103,11 +132,14 @@ export function RequestCard({
             initials={initials}
             username={username}
             date={date}
-            image="#"
+            image={user.data?.avatar}
             className="flex flex-col"
           >
             <Avatar className="mr-5 self-center">
-              <AvatarImage src={"#"} alt={`@${username}`} />
+              <AvatarImage
+                src={user.data?.avatar}
+                alt={`@${username}`}
+              />
               <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
           </AvatarHover>
@@ -127,7 +159,9 @@ export function RequestCard({
             initials={initials}
             first_name={first_name}
             last_name={last_name}
-            image="#"
+            image={user.data?.avatar}
+            bio={user.data?.bio}
+            urls={user.data?.urls}
           >
             <Button
               variant="ghost"
@@ -197,8 +231,8 @@ export function RequestCard({
               }
               confirm={
                 <span className="self-center flex">
-                  <Trash2 className="self-center mr-2" />
-                  <span className="self-center">Delete</span>
+                  <UserMinus className="self-center mr-2" />
+                  <span className="self-center">Remove Friend</span>
                 </span>
               }
               confirmClass={"bg-red-600 text-white hover:bg-red-800"}
@@ -211,8 +245,10 @@ export function RequestCard({
               >
                 {!deleteIsPending && (
                   <>
-                    <Trash2 className={cn("text-red-600", iconClass)} />
-                    <span className="hidden md:block">Delete</span>
+                    <UserMinus
+                      className={cn("text-red-600", iconClass)}
+                    />
+                    <span className="hidden md:block">Unfriend</span>
                   </>
                 )}
                 {deleteIsPending && (
@@ -289,6 +325,8 @@ function DialogWrapper({
   first_name,
   last_name,
   image,
+  bio,
+  urls,
 }: {
   children: React.ReactNode;
   username: string;
@@ -296,6 +334,8 @@ function DialogWrapper({
   first_name: string;
   last_name: string;
   image: string;
+  bio: string;
+  urls: Array<string>;
 }) {
   return (
     <Dialog>
@@ -315,12 +355,60 @@ function DialogWrapper({
             </AvatarFallback>
           </Avatar>
           <div>
-            <p className="">@{username}</p>
+            <p>@{username}</p>
             <p>
               {first_name} {last_name}
             </p>
           </div>
         </div>
+        <p>
+          <strong>Bio:</strong>
+        </p>
+        <p>{bio}</p>
+        {urls && (
+          <>
+            <p>
+              <strong>Socials:</strong>
+            </p>
+            {urls.map((item) => (
+              <div key={item} className="flex items-center space-x-2">
+                <Input value={item} readOnly />
+                <TooltipProvider delayDuration={100}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        onClick={() =>
+                          navigator.clipboard.writeText(item)
+                        }
+                        className="rounded-md border-2 p-2"
+                      >
+                        <Copy className="p-1" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{"Copy to clipboard"}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Link
+                        href={item}
+                        target={item ? "_blank" : ""}
+                        className="rounded-md border-2 p-2"
+                      >
+                        <IconFromUrl url={item} />
+                      </Link>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{"Visit link"}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            ))}
+          </>
+        )}
         <DialogFooter className="flex h-8 items-center space-x-2 self-center justify-center">
           <DialogClose asChild>
             <Button variant="secondary" className="px-2">

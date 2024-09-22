@@ -2,11 +2,7 @@
 
 import { createClient } from "@/utils/supabase/server";
 import { Message, SignupFields } from "@/types/auth";
-
-const usernameRegex = /^[a-zA-Z0-9_]*$/;
-const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-const nameRegex = /^[a-z ,.'-]+$/i;
-
+import { nameRegex, usernameRegex, passwordRegex } from "@/lib/utils";
 
 export async function authenticate<T = SignupFields>(_currentState: unknown, formData: FormData): Promise<Message<T>> {
   const supabase = createClient();

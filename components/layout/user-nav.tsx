@@ -4,7 +4,11 @@ import Link from "next/link";
 import { LayoutGrid, LogOut, User } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/components/ui/avatar";
 import {
   Tooltip,
   TooltipContent,
@@ -22,15 +26,25 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useSignout } from "@/hooks/use-signout";
 import { useUserInfo } from "@/hooks/use-user-info";
+import { paths } from "@/lib/constants";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import axios from "@/lib/axios";
+import { UserResponse } from "@/types/api/user";
 
 export function UserNav() {
+  const { data: user } = useQuery({
+    queryFn: async () => {
+      const response = await axios.get<UserResponse>("/api/user");
+      return response.data;
+    },
+    queryKey: ["user"],
+  });
   const signout = useSignout();
-  const userInfo = useUserInfo();
-  const username = userInfo?.username;
-  const fullname = userInfo?.first_name + " " + userInfo?.last_name;
+  const username = user?.username;
+  const fullname = user?.first_name + " " + user?.last_name;
   const initials =
-    (userInfo?.first_name?.charAt(0) || "X") +
-    (userInfo?.last_name?.charAt(0) || "X");
+    (user?.first_name?.charAt(0) || "X") +
+    (user?.last_name?.charAt(0) || "X");
   return (
     <DropdownMenu>
       <TooltipProvider disableHoverableContent>
@@ -42,7 +56,10 @@ export function UserNav() {
                 className="relative h-8 w-8 rounded-full"
               >
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src="#" alt={username || "Avatar"} />
+                  <AvatarImage
+                    src={user?.avatar ?? "#"}
+                    alt={username || "Avatar"}
+                  />
                   <AvatarFallback className="bg-transparent">
                     {initials}
                   </AvatarFallback>
@@ -57,7 +74,9 @@ export function UserNav() {
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{fullname}</p>
+            <p className="text-sm font-medium leading-none">
+              {fullname}
+            </p>
             <p className="text-xs leading-none text-muted-foreground">
               {username}
             </p>
@@ -72,14 +91,17 @@ export function UserNav() {
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem className="hover:cursor-pointer" asChild>
-            <Link href="/account" className="flex items-center">
+            <Link href={paths.profile} className="flex items-center">
               <User className="w-4 h-4 mr-3 text-muted-foreground" />
-              Account
+              Profile
             </Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="hover:cursor-pointer" onClick={signout}>
+        <DropdownMenuItem
+          className="hover:cursor-pointer"
+          onClick={signout}
+        >
           <LogOut className="w-4 h-4 mr-3 text-muted-foreground" />
           Sign out
         </DropdownMenuItem>

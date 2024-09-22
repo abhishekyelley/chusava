@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 
 export class SupabaseError extends Error {
   status = 500;
-  constructor(error: AuthError | PostgrestError | AuthApiError | ErrorResponse) {
+  constructor(error: AuthError | PostgrestError | AuthApiError | ErrorResponse | Error) {
     super(error.message, {
       cause: "cause" in error ? error.cause : undefined,
     });

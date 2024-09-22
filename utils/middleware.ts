@@ -12,5 +12,6 @@ export function generateCases(pathname: string) {
       !pathname.startsWith(paths.signup) &&
       !pathname.endsWith("/")
     ),
+    UserGoingToJustSettings: pathname.endsWith(paths.settings),
   }
 }

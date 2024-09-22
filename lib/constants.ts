@@ -4,6 +4,8 @@ const paths = {
   login: "/login",
   signup: "/signup",
   about: "/about",
+  settings: "/settings",
+  profile: "/settings/profile",
 };
 Object.freeze(paths);
 

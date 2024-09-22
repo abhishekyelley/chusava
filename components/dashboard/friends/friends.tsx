@@ -18,6 +18,12 @@ import { ErrorResponse } from "@/types/api/error";
 import { Requests } from "@/components/dashboard/friends/requests";
 import { useQuery } from "@tanstack/react-query";
 import axios from "@/lib/axios";
+import {
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
+import { useCallback } from "react";
 
 const tabs = [
   {
@@ -44,11 +50,22 @@ const tabs = [
 ];
 
 export function Friends() {
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const router = useRouter();
+  const createQueryString = useCallback(
+    (queries: Array<{ name: string; value: string }>) => {
+      const params = new URLSearchParams(searchParams.toString());
+      queries.forEach(({ name, value }) => params.set(name, value));
+      return params.toString();
+    },
+    [searchParams]
+  );
   const { data, error, isLoading, isError } = useQuery<
     FriendsResponse[],
     ErrorResponse
   >({
-    queryKey: ["dashboard", "friends"],
+    queryKey: ["dashboard", "users"],
     queryFn: async () => {
       const response = await axios.get<FriendsResponse[]>(
         "/api/friends"
@@ -56,17 +73,33 @@ export function Friends() {
       return response.data;
     },
   });
+  function handleClick(id: string) {
+    router.push(
+      pathname +
+        "?" +
+        createQueryString([
+          {
+            name: "sub",
+            value: id,
+          },
+        ])
+    );
+  }
+  const subParam = searchParams.get("sub");
+  const sub = tabs.find((item) => item.id === subParam);
   return (
     <div>
-      <Tabs defaultValue={tabs[0].id} className="w-full grid gap-4">
-        <TabsList
-          className={cn(
-            "grid w-max",
-            "grid-cols-" + String(tabs.length)
-          )}
-        >
+      <Tabs
+        defaultValue={sub ? sub.id : tabs[0].id}
+        className="w-full grid gap-4"
+      >
+        <TabsList className={cn("grid w-max", "grid-cols-3")}>
           {tabs.map(({ id, name }) => (
-            <TabsTrigger key={id} value={id}>
+            <TabsTrigger
+              key={id}
+              value={id}
+              onClick={() => handleClick(id)}
+            >
               {name}
             </TabsTrigger>
           ))}

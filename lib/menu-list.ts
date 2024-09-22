@@ -1,6 +1,6 @@
 import {
   Tag,
-  Users,
+  // Users,
   Settings,
   Bookmark,
   SquarePen,
@@ -81,17 +81,17 @@ export function getMenuList(pathname: string): Group[] {
     {
       groupLabel: "Settings",
       menus: [
+        // {
+        //   href: "/users",
+        //   label: "Users",
+        //   active: pathname.includes("/users"),
+        //   icon: Users,
+        //   submenus: []
+        // },
         {
-          href: "/users",
-          label: "Users",
-          active: pathname.includes("/users"),
-          icon: Users,
-          submenus: []
-        },
-        {
-          href: "/account",
-          label: "Account",
-          active: pathname.includes("/account"),
+          href: "/settings",
+          label: "Settings",
+          active: pathname.includes("/settings"),
           icon: Settings,
           submenus: []
         }

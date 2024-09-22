@@ -62,6 +62,7 @@ export function Requests({
       {data.map(
         ({
           friendship_id,
+          id,
           username,
           first_name,
           last_name,
@@ -69,6 +70,7 @@ export function Requests({
         }) => (
           <RequestCard
             key={friendship_id}
+            user_id={id}
             friendship_id={friendship_id}
             username={username!}
             first_name={first_name!}

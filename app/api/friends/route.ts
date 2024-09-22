@@ -1,7 +1,7 @@
 import { generateErrorReponse } from "@/lib/api/error";
 import { SupabaseError } from "@/lib/api/error";
 import { FriendsResponse } from "@/types/dashboard";
-import { getUserById } from "@/lib/api/user";
+import { getUser, getUserById } from "@/lib/api/user";
 import { ErrorResponse } from "@/types/api/error";
 import { createClient } from "@/utils/supabase/server";
 import { NextResponse } from "next/server";
@@ -9,16 +9,7 @@ import { NextResponse } from "next/server";
 export async function GET(): Promise<NextResponse<FriendsResponse[] | ErrorResponse>> {
   try {
     const supabase = createClient();
-    const {
-      data: { user },
-      error: getUserError,
-    } = await supabase.auth.getUser();
-    if (getUserError) {
-      throw new SupabaseError(getUserError);
-    }
-    if (!user) {
-      throw new Error("User not found");
-    }
+    const user = await getUser();
 
     const { data: friendsData, error: friendsError } = await supabase
       .from("friends")
@@ -43,7 +34,6 @@ export async function GET(): Promise<NextResponse<FriendsResponse[] | ErrorRespo
     }));
     return NextResponse.json(data);
   } catch (err) {
-    const response = generateErrorReponse(err);
-    return response;
+    return generateErrorReponse(err);
   }
 }

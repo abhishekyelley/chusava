@@ -35,7 +35,7 @@ export async function updateSession(request: NextRequest) {
 
   const url = request.nextUrl.clone();
 
-  const { UserGoingToRoot, UserGoingToAuth, UserGoingToProtected } = generateCases(url.pathname);
+  const { UserGoingToRoot, UserGoingToAuth, UserGoingToProtected, UserGoingToJustSettings } = generateCases(url.pathname);
 
   if (!user) {
     if (UserGoingToProtected) {
@@ -46,6 +46,10 @@ export async function updateSession(request: NextRequest) {
   else {
     if (UserGoingToAuth || UserGoingToRoot) {
       url.pathname = paths.dashboard;
+      return NextResponse.redirect(url);
+    }
+    if (UserGoingToJustSettings) {
+      url.pathname = paths.profile;
       return NextResponse.redirect(url);
     }
   }

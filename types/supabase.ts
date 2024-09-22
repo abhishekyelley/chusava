@@ -50,21 +50,27 @@ export type Database = {
       }
       users: {
         Row: {
+          bio: string | null
           first_name: string | null
           id: string
           last_name: string | null
+          urls: string[] | null
           username: string | null
         }
         Insert: {
+          bio?: string | null
           first_name?: string | null
           id: string
           last_name?: string | null
+          urls?: string[] | null
           username?: string | null
         }
         Update: {
+          bio?: string | null
           first_name?: string | null
           id?: string
           last_name?: string | null
+          urls?: string[] | null
           username?: string | null
         }
         Relationships: [
