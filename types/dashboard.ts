@@ -10,6 +10,7 @@ export interface FriendsResponse extends UserType {
   /**
    * Is current user the sender
    */
+  avatar: string;
   is_sender: boolean;
   accepted: boolean | null;
   created_at: string | null;

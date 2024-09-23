@@ -62,19 +62,23 @@ export function Requests({
       {data.map(
         ({
           friendship_id,
-          id,
           username,
           first_name,
           last_name,
+          bio,
+          urls,
+          avatar,
           created_at,
         }) => (
           <RequestCard
             key={friendship_id}
-            user_id={id}
             friendship_id={friendship_id}
             username={username!}
             first_name={first_name!}
             last_name={last_name!}
+            avatar={avatar}
+            bio={bio!}
+            urls={urls!}
             initials={
               ((first_name?.charAt(0) as string) +
                 last_name?.charAt(0)) as string

@@ -35,7 +35,6 @@ import { FriendRequestsType } from "@/types/dashboard";
 import { AlertDialogWrapper } from "@/components/common/alert";
 import {
   useMutation,
-  useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
 import axios from "@/lib/axios";
@@ -57,31 +56,29 @@ type FriendsType = Database["public"]["Tables"]["friends"]["Row"];
 
 export function RequestCard({
   friendship_id,
-  user_id,
   username,
   first_name,
   last_name,
   initials,
+  avatar,
+  bio,
+  urls,
   date,
   type,
 }: {
   friendship_id: string;
-  user_id: string;
+  user_id?: string;
   username: string;
   first_name: string;
   last_name: string;
   initials: string;
+  avatar: string;
+  bio: string;
+  urls: string[];
   date: Date;
   type: FriendRequestsType;
 }) {
   const queryClient = useQueryClient();
-  const user = useQuery({
-    queryKey: ["users", user_id],
-    queryFn: async () => {
-      const response = await axios.get("/api/user/" + user_id);
-      return response.data;
-    },
-  });
   const { mutate: deleteMutate, isPending: deleteIsPending } =
     useMutation<null, ErrorResponse, string>({
       mutationFn: async (friendship_id: string) => {
@@ -132,14 +129,11 @@ export function RequestCard({
             initials={initials}
             username={username}
             date={date}
-            image={user.data?.avatar}
+            image={avatar}
             className="flex flex-col"
           >
             <Avatar className="mr-5 self-center">
-              <AvatarImage
-                src={user.data?.avatar}
-                alt={`@${username}`}
-              />
+              <AvatarImage src={avatar} alt={`@${username}`} />
               <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
           </AvatarHover>
@@ -159,9 +153,9 @@ export function RequestCard({
             initials={initials}
             first_name={first_name}
             last_name={last_name}
-            image={user.data?.avatar}
-            bio={user.data?.bio}
-            urls={user.data?.urls}
+            image={avatar}
+            bio={bio}
+            urls={urls}
           >
             <Button
               variant="ghost"
