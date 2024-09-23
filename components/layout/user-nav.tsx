@@ -25,9 +25,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useSignout } from "@/hooks/use-signout";
-import { useUserInfo } from "@/hooks/use-user-info";
 import { paths } from "@/lib/constants";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import axios from "@/lib/axios";
 import { UserResponse } from "@/types/api/user";
 
@@ -59,6 +58,7 @@ export function UserNav() {
                   <AvatarImage
                     src={user?.avatar ?? "#"}
                     alt={username || "Avatar"}
+                    className="object-cover"
                   />
                   <AvatarFallback className="bg-transparent">
                     {initials}

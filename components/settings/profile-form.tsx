@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import {
   useMutation,
   useQuery,
@@ -33,7 +33,12 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import Link from "next/link";
-import { LoaderCircle, Pencil, Trash2, Upload } from "lucide-react";
+import {
+  LoaderCircle,
+  Pencil,
+  Trash2,
+  Upload,
+} from "lucide-react";
 import { UserResponse } from "@/types/api/user";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import {
@@ -45,12 +50,12 @@ import {
 const MAX_IN_MB = 1;
 
 const MAX_FILE_SIZE = MAX_IN_MB * 10 ** 6;
-const ACCEPTED_IMAGE_TYPES = [
-  "image/jpeg",
-  "image/jpg",
-  "image/png",
-  "image/webp",
-];
+// const ACCEPTED_IMAGE_TYPES = [
+//   "image/jpeg",
+//   "image/jpg",
+//   "image/png",
+//   "image/webp",
+// ];
 
 const profileFormSchema = z.object({
   first_name: z
@@ -59,7 +64,8 @@ const profileFormSchema = z.object({
       message: "First name must be at least 2 characters.",
     })
     .max(30, {
-      message: "First name must not be longer than 30 characters.",
+      message:
+        "First name must not be longer than 30 characters.",
     }),
   last_name: z
     .string()
@@ -67,7 +73,8 @@ const profileFormSchema = z.object({
       message: "First name must be at least 2 characters.",
     })
     .max(30, {
-      message: "First name must not be longer than 30 characters.",
+      message:
+        "First name must not be longer than 30 characters.",
     }),
   username: z
     .string()
@@ -75,7 +82,8 @@ const profileFormSchema = z.object({
       message: "Username must be at least 2 characters.",
     })
     .max(30, {
-      message: "Username must not be longer than 30 characters.",
+      message:
+        "Username must not be longer than 30 characters.",
     })
     .refine((value) => usernameRegex.test(value ?? ""), {
       message:
@@ -108,8 +116,12 @@ const avatarFormSchema = z.object({
     ),
 });
 
-export type ProfileFormValues = z.infer<typeof profileFormSchema>;
-export type AvatarFormValues = z.infer<typeof avatarFormSchema>;
+export type ProfileFormValues = z.infer<
+  typeof profileFormSchema
+>;
+export type AvatarFormValues = z.infer<
+  typeof avatarFormSchema
+>;
 
 // This can come from your database or API.
 const defaultValues: Partial<ProfileFormValues> = {
@@ -121,7 +133,10 @@ const defaultValues: Partial<ProfileFormValues> = {
   urls: [{ value: "" }],
 };
 
-function getImage(files: FileList | undefined, current?: string) {
+function getImage(
+  files: FileList | undefined,
+  current?: string
+) {
   if (files && files.length > 0) {
     return URL.createObjectURL(files[0]);
   }
@@ -135,21 +150,27 @@ export function ProfileForm() {
   const queryClient = useQueryClient();
   const user = useQuery({
     queryFn: async () => {
-      const response = await axios.get<UserResponse>("/api/user");
+      const response = await axios.get<UserResponse>(
+        "/api/user"
+      );
       return response.data;
     },
     queryKey: ["user"],
   });
   const update = useMutation({
-    mutationFn: async (data: Partial<ProfileFormValues>) => {
+    mutationFn: async (
+      data: Partial<ProfileFormValues>
+    ) => {
       return await axios.post("/api/user", data);
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success("Profile information updated.", {
         description: new Date().toLocaleTimeString(),
       });
       queryClient.invalidateQueries({
         queryKey: ["user"],
+        exact: false,
+        refetchType: "all",
       });
     },
     onError: () => {
@@ -158,6 +179,8 @@ export function ProfileForm() {
       });
       queryClient.invalidateQueries({
         queryKey: ["user"],
+        exact: false,
+        refetchType: "all",
       });
     },
   });
@@ -171,6 +194,8 @@ export function ProfileForm() {
       });
       queryClient.invalidateQueries({
         queryKey: ["avatar", "user"],
+        exact: false,
+        refetchType: "all",
       });
     },
     onError: () => {
@@ -179,6 +204,8 @@ export function ProfileForm() {
       });
       queryClient.invalidateQueries({
         queryKey: ["avatar"],
+        exact: false,
+        refetchType: "all",
       });
     },
   });
@@ -191,21 +218,28 @@ export function ProfileForm() {
     resolver: zodResolver(avatarFormSchema),
     mode: "onChange",
   });
-  const { fields, append, remove, replace } = useFieldArray({
-    name: "urls",
-    control: form.control,
-  });
+  const { fields, append, remove, replace } = useFieldArray(
+    {
+      name: "urls",
+      control: form.control,
+    }
+  );
   useEffect(() => {
     if (user.data) {
-      form.setValue("first_name", user.data.first_name ?? "");
+      form.setValue(
+        "first_name",
+        user.data.first_name ?? ""
+      );
       form.setValue("last_name", user.data.last_name ?? "");
       form.setValue("username", user.data.username ?? "");
       form.setValue("email", user.data.email ?? "");
       form.setValue("bio", user.data.bio ?? "");
       user.data.urls &&
-        replace(user.data.urls.map((url) => ({ value: url })));
+        replace(
+          user.data.urls.map((url) => ({ value: url }))
+        );
     }
-  }, [user.data]);
+  }, [user.data, form, replace]);
 
   function handleUrlDelete(name: string) {
     const idx = Number(name.split(".")[1]);
@@ -231,7 +265,7 @@ export function ProfileForm() {
           <FormField
             control={avatarForm.control}
             name="avatar"
-            render={({ field }) => (
+            render={() => (
               <FormItem>
                 <FormLabel>Avatar</FormLabel>
                 <FormControl>
@@ -242,7 +276,7 @@ export function ProfileForm() {
                         user.data?.avatar
                       ) && (
                         <div className="rounded-full absolute w-48 h-48">
-                          <Pencil className="relative left-[50%] -translate-x-[50%] top-[50%] -translate-y-[50%] h-12 w-12 z-10" />
+                          <Pencil className="text-white relative left-[50%] -translate-x-[50%] top-[50%] -translate-y-[50%] h-12 w-12 z-10" />
                         </div>
                       )}
                       <AvatarImage
@@ -266,14 +300,20 @@ export function ProfileForm() {
                   </div>
                 </FormControl>
                 <FormDescription>
-                  This is your avatar, publicly visible to everyone.
+                  This is your avatar, publicly visible to
+                  everyone.
                 </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
-          <Button disabled={avatarUpdate.isPending} type="submit">
-            {!avatarUpdate.isPending && <span>Save Avatar</span>}
+          <Button
+            disabled={avatarUpdate.isPending}
+            type="submit"
+          >
+            {!avatarUpdate.isPending && (
+              <span>Save Avatar</span>
+            )}
             {avatarUpdate.isPending && (
               <>
                 <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
@@ -299,7 +339,9 @@ export function ProfileForm() {
                     <Input placeholder="---" {...field} />
                   </FormControl>
                   <FormDescription>
-                    <VisuallyHidden>Your First Name</VisuallyHidden>
+                    <VisuallyHidden>
+                      Your First Name
+                    </VisuallyHidden>
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -315,7 +357,9 @@ export function ProfileForm() {
                     <Input placeholder="---" {...field} />
                   </FormControl>
                   <FormDescription>
-                    <VisuallyHidden>Your Last Name</VisuallyHidden>
+                    <VisuallyHidden>
+                      Your Last Name
+                    </VisuallyHidden>
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -329,11 +373,15 @@ export function ProfileForm() {
               <FormItem>
                 <FormLabel>Username</FormLabel>
                 <FormControl>
-                  <Input placeholder="---" {...field} disabled />
+                  <Input
+                    placeholder="---"
+                    {...field}
+                    disabled
+                  />
                 </FormControl>
                 <FormDescription>
-                  This is your public display name. It can be your
-                  real name or a pseudonym.
+                  This is your public display name. It can
+                  be your real name or a pseudonym.
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -346,11 +394,15 @@ export function ProfileForm() {
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input placeholder="---" {...field} disabled />
+                  <Input
+                    placeholder="---"
+                    {...field}
+                    disabled
+                  />
                 </FormControl>
                 <FormDescription>
-                  This is the email address your account was created
-                  with.
+                  This is the email address your account was
+                  created with.
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -389,30 +441,41 @@ export function ProfileForm() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel
-                      className={cn(index !== 0 && "sr-only")}
+                      className={cn(
+                        index !== 0 && "sr-only"
+                      )}
                     >
                       Socials
                     </FormLabel>
                     <FormDescription
-                      className={cn(index !== 0 && "sr-only")}
+                      className={cn(
+                        index !== 0 && "sr-only"
+                      )}
                     >
-                      Add links to your website, blog, or social media
-                      profiles.
+                      Add links to your website, blog, or
+                      social media profiles.
                     </FormDescription>
                     <FormControl>
                       <div className="flex items-center space-x-2">
                         <Input {...field} />
-                        <TooltipProvider delayDuration={100}>
+                        <TooltipProvider
+                          delayDuration={100}
+                        >
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <Button
                                 variant={"destructive"}
                                 className="rounded-md border-2 p-2"
                                 onClick={() =>
-                                  handleUrlDelete(field.name)
+                                  handleUrlDelete(
+                                    field.name
+                                  )
                                 }
                               >
-                                <Trash2 height={18} width={18} />
+                                <Trash2
+                                  height={18}
+                                  width={18}
+                                />
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>
@@ -423,10 +486,16 @@ export function ProfileForm() {
                             <TooltipTrigger asChild>
                               <Link
                                 href={field.value}
-                                target={field.value ? "_blank" : ""}
+                                target={
+                                  field.value
+                                    ? "_blank"
+                                    : ""
+                                }
                                 className="rounded-md border-2 p-2"
                               >
-                                <IconFromUrl url={field.value} />
+                                <IconFromUrl
+                                  url={field.value}
+                                />
                               </Link>
                             </TooltipTrigger>
                             <TooltipContent>
@@ -451,12 +520,17 @@ export function ProfileForm() {
               Add URL
             </Button>
           </div>
-          <Button type="submit" disabled={update.isPending || !user}>
+          <Button
+            type="submit"
+            disabled={update.isPending || !user}
+          >
             {(!user || update.isPending) && (
               <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
             )}
             {update.isPending && <span>Updating...</span>}
-            {user && !update.isPending && <span>Update profile</span>}
+            {user && !update.isPending && (
+              <span>Update profile</span>
+            )}
           </Button>
         </form>
       </Form>

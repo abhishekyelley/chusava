@@ -52,7 +52,8 @@ import { IconFromUrl } from "@/components/common/icon-from-url";
 const iconClass =
   "mr-0 md:mr-2 h-[16px] w-[16px] md:h-[24px] md:w-[24px]";
 
-type FriendsType = Database["public"]["Tables"]["friends"]["Row"];
+type FriendsType =
+  Database["public"]["Tables"]["friends"]["Row"];
 
 export function RequestCard({
   friendship_id,
@@ -79,41 +80,49 @@ export function RequestCard({
   type: FriendRequestsType;
 }) {
   const queryClient = useQueryClient();
-  const { mutate: deleteMutate, isPending: deleteIsPending } =
-    useMutation<null, ErrorResponse, string>({
-      mutationFn: async (friendship_id: string) => {
-        const response = await axios.delete<null>(
-          "/api/friends/" + friendship_id
-        );
-        return response.data;
-      },
-      onSuccess: () => {
-        queryClient.invalidateQueries({
-          queryKey: ["dashboard", "users"],
-        });
-      },
-      onError: (error) => {
-        console.error(error);
-      },
-    });
+  const {
+    mutate: deleteMutate,
+    isPending: deleteIsPending,
+  } = useMutation<null, ErrorResponse, string>({
+    mutationFn: async (friendship_id: string) => {
+      const response = await axios.delete<null>(
+        "/api/friends/" + friendship_id
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["dashboard", "friends"],
+        exact: false,
+        refetchType: "all",
+      });
+    },
+    onError: (error) => {
+      console.error(error);
+    },
+  });
 
-  const { mutate: acceptMutate, isPending: acceptIsPending } =
-    useMutation<FriendsType, ErrorResponse, string>({
-      mutationFn: async (friendship_id: string) => {
-        const response = await axios.patch<FriendsType>(
-          "/api/friends/" + friendship_id
-        );
-        return response.data;
-      },
-      onSuccess: () => {
-        queryClient.invalidateQueries({
-          queryKey: ["dashboard", "users"],
-        });
-      },
-      onError: (error) => {
-        console.error(error);
-      },
-    });
+  const {
+    mutate: acceptMutate,
+    isPending: acceptIsPending,
+  } = useMutation<FriendsType, ErrorResponse, string>({
+    mutationFn: async (friendship_id: string) => {
+      const response = await axios.patch<FriendsType>(
+        "/api/friends/" + friendship_id
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["dashboard", "friends"],
+        exact: false,
+        refetchType: "all",
+      });
+    },
+    onError: (error) => {
+      console.error(error);
+    },
+  });
 
   async function handleDeleteConfirm() {
     deleteMutate(friendship_id);
@@ -133,13 +142,19 @@ export function RequestCard({
             className="flex flex-col"
           >
             <Avatar className="mr-5 self-center">
-              <AvatarImage src={avatar} alt={`@${username}`} />
+              <AvatarImage
+                src={avatar}
+                alt={`@${username}`}
+              />
               <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
           </AvatarHover>
 
           <div className="self-center">
-            <Link href="#" className=" text-sm md:text-base">
+            <Link
+              href="#"
+              className=" text-sm md:text-base"
+            >
               @{username}
             </Link>
             <p className="text-sm md:text-base">
@@ -174,8 +189,12 @@ export function RequestCard({
               onClick={handleAcceptConfirm}
               disabled={acceptIsPending}
             >
-              <Check className={cn("text-green-500", iconClass)} />
-              <span className="hidden md:block">Accept</span>
+              <Check
+                className={cn("text-green-500", iconClass)}
+              />
+              <span className="hidden md:block">
+                Accept
+              </span>
             </Button>
           )}
           {type === "outgoing" && (
@@ -187,10 +206,14 @@ export function RequestCard({
               confirm={
                 <span className="self-center flex">
                   <Trash2 className="self-center mr-2" />
-                  <span className="self-center">Remove</span>
+                  <span className="self-center">
+                    Remove
+                  </span>
                 </span>
               }
-              confirmClass={"bg-red-600 text-white hover:bg-red-800"}
+              confirmClass={
+                "bg-red-600 text-white hover:bg-red-800"
+              }
               handleConfirm={handleDeleteConfirm}
             >
               <Button
@@ -200,14 +223,24 @@ export function RequestCard({
               >
                 {!deleteIsPending && (
                   <>
-                    <X className={cn("text-red-600", iconClass)} />
-                    <span className="hidden md:block">Remove</span>
+                    <X
+                      className={cn(
+                        "text-red-600",
+                        iconClass
+                      )}
+                    />
+                    <span className="hidden md:block">
+                      Remove
+                    </span>
                   </>
                 )}
                 {deleteIsPending && (
                   <>
                     <LoaderCircle
-                      className={cn(iconClass, "animate-spin")}
+                      className={cn(
+                        iconClass,
+                        "animate-spin"
+                      )}
                     />
                     <span className="hidden md:block">
                       Removing...
@@ -226,10 +259,14 @@ export function RequestCard({
               confirm={
                 <span className="self-center flex">
                   <UserMinus className="self-center mr-2" />
-                  <span className="self-center">Remove Friend</span>
+                  <span className="self-center">
+                    Remove Friend
+                  </span>
                 </span>
               }
-              confirmClass={"bg-red-600 text-white hover:bg-red-800"}
+              confirmClass={
+                "bg-red-600 text-white hover:bg-red-800"
+              }
               handleConfirm={handleDeleteConfirm}
             >
               <Button
@@ -240,15 +277,23 @@ export function RequestCard({
                 {!deleteIsPending && (
                   <>
                     <UserMinus
-                      className={cn("text-red-600", iconClass)}
+                      className={cn(
+                        "text-red-600",
+                        iconClass
+                      )}
                     />
-                    <span className="hidden md:block">Unfriend</span>
+                    <span className="hidden md:block">
+                      Unfriend
+                    </span>
                   </>
                 )}
                 {deleteIsPending && (
                   <>
                     <LoaderCircle
-                      className={cn(iconClass, "animate-spin")}
+                      className={cn(
+                        iconClass,
+                        "animate-spin"
+                      )}
                     />
                     <span className="hidden md:block">
                       Removing...
@@ -365,7 +410,10 @@ function DialogWrapper({
               <strong>Socials:</strong>
             </p>
             {urls.map((item) => (
-              <div key={item} className="flex items-center space-x-2">
+              <div
+                key={item}
+                className="flex items-center space-x-2"
+              >
                 <Input value={item} readOnly />
                 <TooltipProvider delayDuration={100}>
                   <Tooltip>
@@ -373,7 +421,9 @@ function DialogWrapper({
                       <Button
                         variant={"outline"}
                         onClick={() =>
-                          navigator.clipboard.writeText(item)
+                          navigator.clipboard.writeText(
+                            item
+                          )
                         }
                         className="rounded-md border-2 p-2"
                       >

@@ -6,7 +6,9 @@ export function useSignout() {
   const supabase = createClient();
   const router = useRouter();
   return async () => {
-    await supabase.auth.signOut();
+    await supabase.auth.signOut({
+      scope: "local",
+    });
     router.push(paths.login);
   };
 }

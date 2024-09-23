@@ -65,7 +65,7 @@ export function Friends() {
     FriendsResponse[],
     ErrorResponse
   >({
-    queryKey: ["dashboard", "users"],
+    queryKey: ["dashboard", "friends"],
     queryFn: async () => {
       const response = await axios.get<FriendsResponse[]>(
         "/api/friends"

@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
     const user = await getUser();
     const formData = await request.formData();
     const avatar = formData.get("avatar") as File;
-    const { data, error } = await supabase
+    const { error } = await supabase
       .storage
       .from("avatars")
       .upload(`${user.id}/avatar.${avatar.name.split(".").at(-1)}`, avatar, {
