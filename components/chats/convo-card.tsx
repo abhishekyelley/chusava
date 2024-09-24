@@ -22,6 +22,8 @@ export function ConvoCard({
   username,
   time = "",
   isOpen = true,
+  onSelect,
+  isSelected,
 }: {
   id: string;
   image: string;
@@ -30,6 +32,8 @@ export function ConvoCard({
   username: string;
   time?: string;
   isOpen?: boolean;
+  onSelect: () => void;
+  isSelected: boolean;
 }) {
   const initials =
     first_name.charAt(0) + last_name.charAt(0);
@@ -38,17 +42,24 @@ export function ConvoCard({
       <Tooltip>
         <TooltipTrigger
           className={cn(
+            "my-2",
             "transition-all ease-in-out duration-300",
             isOpen ? "w-full" : "w-min"
           )}
+          id={id}
+          onClick={onSelect}
         >
           <div
-            className="rounded-md my-2 py-2 hover:cursor-pointer hover:bg-muted transition-all ease-in-out duration-300"
-            id={id}
+            className={cn(
+              "rounded-md py-2",
+              "hover:cursor-pointer hover:bg-muted",
+              "transition-all ease-in-out duration-300",
+              isSelected ? "bg-muted" : ""
+            )}
           >
             <div className="flex items-center">
               <div className="px-2">
-                <Avatar className="h-12 w-12 border justify-center z-20">
+                <Avatar className="h-12 w-12 border border-gray-600 justify-center z-20">
                   <AvatarFallback className="bg-transparent self-center">
                     {initials}
                   </AvatarFallback>
@@ -60,16 +71,28 @@ export function ConvoCard({
               </div>
               <div className="w-full transition-all ease-in-out duration-300 z-10">
                 <div className="flex justify-between items-center">
-                  <p
-                    className={cn(
-                      "w-max max-w-[200px] whitespace-nowrap truncate transition-all ease-in-out duration-300",
-                      isOpen
-                        ? "translate-x-0 opacity-100 pr-4"
-                        : "-translate-x-96 opacity-0 w-0"
-                    )}
-                  >
-                    {first_name} {last_name}
-                  </p>
+                  <div>
+                    <p
+                      className={cn(
+                        "w-max max-w-[200px] whitespace-nowrap truncate transition-all ease-in-out duration-300",
+                        isOpen
+                          ? "translate-x-0 opacity-100 pr-4"
+                          : "-translate-x-96 opacity-0 w-0"
+                      )}
+                    >
+                      {first_name} {last_name}
+                    </p>
+                    <p
+                      className={cn(
+                        "text-sm w-max max-w-[200px] whitespace-nowrap truncate transition-all ease-in-out duration-300",
+                        isOpen
+                          ? "translate-x-0 opacity-100 pr-4"
+                          : "-translate-x-96 opacity-0 w-0"
+                      )}
+                    >
+                      @{username}
+                    </p>
+                  </div>
                   <p className="text-sm italic">{time}</p>
                 </div>
               </div>

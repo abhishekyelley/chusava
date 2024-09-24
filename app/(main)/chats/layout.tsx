@@ -12,9 +12,9 @@ export default function Layout({
     <Card>
       <CardContent className="p-0">
         <div className="flex h-min">
-          <div className="w-min h-96">{convo}</div>
+          <div className="w-min h-[80dvh]">{convo}</div>
           <Separator
-            className="h-96"
+            className="h-[80dvh]"
             orientation="vertical"
           />
           <div className="w-min h-96">
