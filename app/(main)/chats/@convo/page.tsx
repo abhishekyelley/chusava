@@ -2,7 +2,6 @@
 
 import { ConvoCard } from "@/components/chats/convo-card";
 import { ConvoSkeleton } from "@/components/chats/convo-skeleton";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -91,33 +90,28 @@ export default function Page() {
             </h3>
             <TooltipProvider delayDuration={100}>
               <Tooltip>
-                <TooltipTrigger>
-                  <Button
-                    className="rounded-full h-12 w-12 p-1"
-                    variant="ghost"
-                    onClick={() =>
-                      setIsOpen((prev) => !prev)
-                    }
-                  >
-                    <Maximize2
-                      className={cn(
-                        "self-center",
-                        "transition-all ease-in-out duration-300",
-                        isOpen
-                          ? "opacity-0 w-0"
-                          : "-rotate-[135deg]"
-                      )}
-                    />
-                    <Minimize2
-                      className={cn(
-                        "self-center rotate-45",
-                        "transition-all ease-in-out duration-300",
-                        isOpen
-                          ? "-rotate-[135deg]"
-                          : "opacity-0 w-0"
-                      )}
-                    />
-                  </Button>
+                <TooltipTrigger
+                  className="rounded-full hover:bg-muted h-12 w-12 p-1 flex justify-center self-center"
+                  onClick={() => setIsOpen((prev) => !prev)}
+                >
+                  <Maximize2
+                    className={cn(
+                      "self-center",
+                      "transition-all ease-in-out duration-300",
+                      isOpen
+                        ? "opacity-0 w-0"
+                        : "-rotate-[360deg]"
+                    )}
+                  />
+                  <Minimize2
+                    className={cn(
+                      "self-center",
+                      "transition-all ease-in-out duration-300",
+                      isOpen
+                        ? "-rotate-[360deg]"
+                        : "opacity-0 w-0"
+                    )}
+                  />
                 </TooltipTrigger>
                 <TooltipContent>
                   {isOpen ? "Collapse" : "Expand"}
