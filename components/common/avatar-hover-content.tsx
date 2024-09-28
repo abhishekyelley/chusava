@@ -7,7 +7,7 @@ import {
 import { memo } from "react";
 
 export const AvatarHoverContent = memo(
-  ({
+  function AvatarHoverContent({
     avatar,
     username,
     first_name,
@@ -19,7 +19,7 @@ export const AvatarHoverContent = memo(
     first_name: string;
     last_name: string;
     date?: Date;
-  }) => {
+  }) {
     const initials =
       first_name.charAt(0) + last_name.charAt(0);
     return (

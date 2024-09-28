@@ -8,7 +8,6 @@ import { User } from "lucide-react";
 import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import { Database } from "@/types/supabase";
 import { UserInfoDialog } from "@/components/common/user-info-dialog";
 import { AvatarHover } from "@/components/common/avatar-hover";
 
@@ -59,7 +58,7 @@ export function UserCard({
 
           <div className="self-center">
             <Link
-              href="#"
+              href={`#${id}`}
               className=" text-sm md:text-base"
             >
               @{username}
