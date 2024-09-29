@@ -23,7 +23,6 @@ export const Results = memo(function Results({
   const params = new URLSearchParams();
   params.set("q", search);
   params.set("friendship", "true");
-
   const people = useQuery<
     FindUserWithFreindshipResponse[],
     ErrorResponse
@@ -64,7 +63,7 @@ export const Results = memo(function Results({
   if (!people.data || people.data.length === 0) {
     return <NoResults />;
   }
-
+  console.log("people", people.data);
   return (
     <>
       {people.data.map(
@@ -107,12 +106,14 @@ export const Results = memo(function Results({
                 type="cancel"
                 friendship_id={friendship.id}
                 username={username!}
+                search={search}
               />
             )}
             {friendship.status === "received" && (
               <AcceptRequest
                 friendship_id={friendship.id}
                 username={username!}
+                search={search}
               />
             )}
             {friendship.status === "friend" && (
@@ -120,11 +121,16 @@ export const Results = memo(function Results({
                 type="unfriend"
                 friendship_id={friendship.id}
                 username={username!}
+                search={search}
               />
             )}
             {friendship.status === "none" &&
               !friendship.self && (
-                <MakeRequest id={id} username={username!} />
+                <MakeRequest
+                  id={id}
+                  username={username!}
+                  search={search}
+                />
               )}
           </UserCard>
         )

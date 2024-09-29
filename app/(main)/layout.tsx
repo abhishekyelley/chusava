@@ -10,7 +10,7 @@ import {
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      // staleTime: 5 * 60000,
+      staleTime: 5 * 60000,
     },
   },
 });
