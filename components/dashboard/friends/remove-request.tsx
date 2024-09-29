@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import axios from "@/lib/axios";
 import { cn } from "@/lib/utils";
 import { ErrorResponse } from "@/types/api/error";
+import { FindUserWithFreindshipResponse } from "@/types/api/user";
+import { createClient } from "@/utils/supabase/client";
 import {
   useMutation,
   useQueryClient,
@@ -21,11 +23,14 @@ export function RemoveRequest({
   type,
   friendship_id,
   username,
+  search,
 }: {
   type: "unfriend" | "cancel";
   friendship_id: string;
   username: string;
+  search: string;
 }) {
+  const supabase = createClient();
   const queryClient = useQueryClient();
   const { mutate, isPending } = useMutation<
     null,
@@ -38,14 +43,68 @@ export function RemoveRequest({
       );
       return response.data;
     },
-    onSuccess: () => {
+    onMutate: async (friendship_id: string) => {
+      await queryClient.cancelQueries({
+        queryKey: ["people", search],
+      });
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession();
+      if (error || !session) {
+        throw Error("No user in session");
+      }
+      const oldData = queryClient.getQueryData<
+        FindUserWithFreindshipResponse[]
+      >(["people", search]);
+      queryClient.setQueryData<
+        FindUserWithFreindshipResponse[]
+      >(["people", search], (old) => {
+        let newData: FindUserWithFreindshipResponse[] = [];
+        if (type === "unfriend") {
+          newData =
+            old?.filter(
+              (item) =>
+                item.friendship.status === "none" ||
+                item.friendship.id !== friendship_id
+            ) ?? [];
+        }
+        if (type === "cancel") {
+          newData =
+            old?.map((item) => {
+              if (
+                item.friendship.status !== "none" &&
+                item.friendship.id === friendship_id
+              ) {
+                item = {
+                  ...item,
+                  friendship: {
+                    status: "none",
+                    self: item.id === session.user.id,
+                  },
+                };
+              }
+              return item;
+            }) ?? [];
+        }
+        return newData;
+      });
+      return oldData;
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({
-        queryKey: ["people"],
-        exact: false,
+        queryKey: ["people", search],
+        exact: true,
         refetchType: "all",
       });
     },
-    onError: (error) => {
+    onError: (error, data, context) => {
+      queryClient.setQueryData<
+        FindUserWithFreindshipResponse[]
+      >(
+        ["people", search],
+        context as FindUserWithFreindshipResponse[]
+      );
       console.error(error);
     },
   });

@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import axios from "@/lib/axios";
 import { cn } from "@/lib/utils";
 import { ErrorResponse } from "@/types/api/error";
+import { FindUserWithFreindshipResponse } from "@/types/api/user";
 import { Database } from "@/types/supabase";
 import {
   useMutation,
@@ -19,9 +20,11 @@ type FriendsType =
 export function MakeRequest({
   id,
   username,
+  search,
 }: {
   id: string;
   username: string;
+  search: string;
 }) {
   const queryClient = useQueryClient();
   const { mutate, isPending } = useMutation<
@@ -36,14 +39,47 @@ export function MakeRequest({
       );
       return response.data;
     },
-    onSuccess: () => {
+    onMutate: async (id: string) => {
+      await queryClient.cancelQueries({
+        queryKey: ["people", search],
+      });
+      const oldData = queryClient.getQueryData<
+        FindUserWithFreindshipResponse[]
+      >(["people", search]);
+      queryClient.setQueryData<
+        FindUserWithFreindshipResponse[]
+      >(["people", search], (old) => {
+        const newData = old?.map((item) => {
+          if (item.id === id) {
+            item = {
+              ...item,
+              friendship: {
+                status: "sent",
+                created_at: "",
+                id: "",
+              },
+            };
+          }
+          return item;
+        });
+        return newData ?? [];
+      });
+      return oldData;
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({
-        queryKey: ["people"],
-        exact: false,
+        queryKey: ["people", search],
+        exact: true,
         refetchType: "all",
       });
     },
-    onError: (error) => {
+    onError: (error, data, context) => {
+      queryClient.setQueryData<
+        FindUserWithFreindshipResponse[]
+      >(
+        ["people", search],
+        context as FindUserWithFreindshipResponse[]
+      );
       console.error(error);
     },
   });
@@ -60,7 +96,9 @@ export function MakeRequest({
           <span className="self-center">Add</span>
         </span>
       }
-      confirmClass={"bg-green-600 text-white hover:bg-green-800"}
+      confirmClass={
+        "bg-green-600 text-white hover:bg-green-800"
+      }
       handleConfirm={handleConfirm}
     >
       <Button
@@ -70,8 +108,12 @@ export function MakeRequest({
       >
         {!isPending && (
           <>
-            <UserPlus className={cn("text-green-600", iconClass)} />
-            <span className="hidden md:block text-green-600">Add</span>
+            <UserPlus
+              className={cn("text-green-600", iconClass)}
+            />
+            <span className="hidden md:block text-green-600">
+              Add
+            </span>
           </>
         )}
         {isPending && (

@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import axios from "@/lib/axios";
 import { cn } from "@/lib/utils";
 import { ErrorResponse } from "@/types/api/error";
+import { FindUserWithFreindshipResponse } from "@/types/api/user";
 import { Database } from "@/types/supabase";
 import {
   useMutation,
@@ -19,9 +20,11 @@ type FriendsType =
 export function AcceptRequest({
   friendship_id,
   username,
+  search,
 }: {
   friendship_id: string;
   username: string;
+  search: string;
 }) {
   const queryClient = useQueryClient();
   const { mutate, isPending } = useMutation<
@@ -35,14 +38,50 @@ export function AcceptRequest({
       );
       return response.data;
     },
-    onSuccess: () => {
+    onMutate: async (friendship_id: string) => {
+      await queryClient.cancelQueries({
+        queryKey: ["people", search],
+      });
+      const oldData = queryClient.getQueryData<
+        FindUserWithFreindshipResponse[]
+      >(["people", search]);
+      queryClient.setQueryData<
+        FindUserWithFreindshipResponse[]
+      >(["people", search], (old) => {
+        const newData = old?.map((item) => {
+          if (
+            item.friendship.status !== "none" &&
+            item.friendship.id === friendship_id
+          ) {
+            item = {
+              ...item,
+              friendship: {
+                status: "friend",
+                created_at: "",
+                id: "",
+              },
+            };
+          }
+          return item;
+        });
+        return newData ?? [];
+      });
+      return oldData;
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({
-        queryKey: ["people"],
-        exact: false,
+        queryKey: ["people", search],
+        exact: true,
         refetchType: "all",
       });
     },
-    onError: (error) => {
+    onError: (error, data, context) => {
+      queryClient.setQueryData<
+        FindUserWithFreindshipResponse[]
+      >(
+        ["people", search],
+        context as FindUserWithFreindshipResponse[]
+      );
       console.error(error);
     },
   });
