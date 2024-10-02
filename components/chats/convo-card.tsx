@@ -13,6 +13,8 @@ import {
 import { AvatarFallback } from "@radix-ui/react-avatar";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
+import { paths } from "@/lib/constants";
 
 export function ConvoCard({
   id,
@@ -22,8 +24,7 @@ export function ConvoCard({
   username,
   time = "",
   isOpen = true,
-  onSelect,
-  isSelected,
+  pathname,
 }: {
   id: string;
   image: string;
@@ -32,8 +33,7 @@ export function ConvoCard({
   username: string;
   time?: string;
   isOpen?: boolean;
-  onSelect: () => void;
-  isSelected: boolean;
+  pathname: string;
 }) {
   const initials =
     first_name.charAt(0) + last_name.charAt(0);
@@ -47,14 +47,15 @@ export function ConvoCard({
             isOpen ? "w-full" : "w-min"
           )}
           id={id}
-          onClick={onSelect}
+          asChild
         >
+          <Link href={`${paths.chats}/${id}`}>
           <div
             className={cn(
-              "rounded-md py-2",
+              "rounded-md py-2 my-2",
               "hover:cursor-pointer hover:bg-muted",
               "transition-all ease-in-out duration-300",
-              isSelected ? "bg-muted" : ""
+              pathname.includes(id) ? "bg-muted" : ""
             )}
           >
             <div className="flex items-center">
@@ -98,6 +99,7 @@ export function ConvoCard({
               </div>
             </div>
           </div>
+          </Link>
         </TooltipTrigger>
         <TooltipContent side="right">
           <>

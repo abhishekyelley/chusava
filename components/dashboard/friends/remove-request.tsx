@@ -9,12 +9,7 @@ import {
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
-import {
-  LoaderCircle,
-  Trash2,
-  UserMinus,
-  X,
-} from "lucide-react";
+import { LoaderCircle, UserMinus, X } from "lucide-react";
 
 const iconClass =
   "mr-0 md:mr-2 h-[16px] w-[16px] md:h-[24px] md:w-[24px]";
@@ -113,13 +108,13 @@ export function RemoveRequest({
   }
   const actionText =
     type === "cancel"
-      ? "Remove"
+      ? "Cancel"
       : type === "unfriend"
       ? "Unfriend"
       : "";
   const actionPendingText =
     type === "cancel"
-      ? "Removing..."
+      ? "Cancelling..."
       : type === "unfriend"
       ? "Deleting..."
       : "";
@@ -136,7 +131,7 @@ export function RemoveRequest({
       confirm={
         <span className="self-center flex">
           {type === "cancel" && (
-            <Trash2 className="self-center mr-2" />
+            <X className="self-center mr-2" />
           )}
           {type === "unfriend" && (
             <UserMinus className="self-center mr-2" />

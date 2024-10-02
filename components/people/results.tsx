@@ -4,7 +4,7 @@ import { memo } from "react";
 import { RequestCardSkeleton } from "@/components/dashboard/friends/request-card-skeleton";
 import { FriendsError } from "@/components/dashboard/friends/error";
 import { NoResults } from "@/components/dashboard/friends/no-results";
-import { Keyboard } from "lucide-react";
+import { Keyboard, MessageCircle } from "lucide-react";
 import { UserCard } from "@/components/common/user-card";
 import { FindUserWithFreindshipResponse } from "@/types/api/user";
 import { ErrorResponse } from "@/types/api/error";
@@ -12,6 +12,10 @@ import { AvatarHoverContent } from "@/components/common/avatar-hover-content";
 import { RemoveRequest } from "@/components/dashboard/friends/remove-request";
 import { AcceptRequest } from "@/components/dashboard/friends/accept-request";
 import { MakeRequest } from "@/components/dashboard/friends/make-request";
+import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { paths } from "@/lib/constants";
 
 export const Results = memo(function Results({
   search,
@@ -63,7 +67,6 @@ export const Results = memo(function Results({
   if (!people.data || people.data.length === 0) {
     return <NoResults />;
   }
-  console.log("people", people.data);
   return (
     <>
       {people.data.map(
@@ -101,6 +104,7 @@ export const Results = memo(function Results({
               />
             }
           >
+            <Separator orientation="vertical" />
             {friendship.status === "sent" && (
               <RemoveRequest
                 type="cancel"
@@ -117,12 +121,23 @@ export const Results = memo(function Results({
               />
             )}
             {friendship.status === "friend" && (
-              <RemoveRequest
-                type="unfriend"
-                friendship_id={friendship.id}
-                username={username!}
-                search={search}
-              />
+              <>
+                <Button variant="ghost" asChild>
+                  <Link
+                    href={`${paths.userChat}/${username}`}
+                  >
+                    <MessageCircle className="self-center mr-2" />
+                    <span>Chat</span>
+                  </Link>
+                </Button>
+                <Separator orientation="vertical" />
+                <RemoveRequest
+                  type="unfriend"
+                  friendship_id={friendship.id}
+                  username={username!}
+                  search={search}
+                />
+              </>
             )}
             {friendship.status === "none" &&
               !friendship.self && (

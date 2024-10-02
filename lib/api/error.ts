@@ -24,7 +24,7 @@ export function generateErrorReponse(err: unknown): NextResponse<ErrorResponse> 
   }
   if (err instanceof SupabaseError) {
     message = err.message;
-    status = err.status;
+    status = (err.status >= 200 && err.status < 600) ? err.status : status;
   }
   return NextResponse.json({
     error: true,

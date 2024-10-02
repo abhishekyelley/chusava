@@ -6,6 +6,8 @@ const paths = {
   about: "/about",
   settings: "/settings",
   profile: "/settings/profile",
+  chats: "/chats",
+  userChat: "/chat/user",
 };
 Object.freeze(paths);
 

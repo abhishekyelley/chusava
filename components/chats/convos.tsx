@@ -8,7 +8,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import axios from "@/lib/axios";
 import { cn } from "@/lib/utils";
 import { ErrorResponse } from "@/types/api/error";
-import { FriendsResponse } from "@/types/dashboard";
 import {
   Tooltip,
   TooltipProvider,
@@ -22,23 +21,41 @@ import {
   Minimize2,
   Search,
 } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { Database } from "@/types/supabase";
+import { usePathname } from "next/navigation";
+import { paths } from "@/lib/constants";
 
-export default function Page() {
+type Unpacked<T> = T extends (infer U)[] ? U : T;
+
+type ConversationsResponse = Array<
+  Unpacked<
+    Database["public"]["Functions"]["get_conversations"]["Returns"]
+  > & {
+    avatar: string;
+  }
+>;
+
+export function Convos() {
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(true);
-  const [selected, setSelected] = useState<string | null>(
-    null
-  );
+  const [didUserOpen, setDidUserOpen] = useState(false);
   const [value, setValue] = useState("");
+  useEffect(() => {
+    if (!pathname.endsWith(paths.chats) && !didUserOpen) {
+      setIsOpen(false);
+    }
+  }, [pathname, didUserOpen]);
   const friends = useQuery<
-    FriendsResponse[],
+    ConversationsResponse,
     ErrorResponse
   >({
     queryKey: ["friends"],
     queryFn: async () => {
-      const response = await axios.get<FriendsResponse[]>(
-        "/api/friends"
-      );
+      const response =
+        await axios.get<ConversationsResponse>(
+          "/api/chats"
+        );
       return response.data;
     },
   });
@@ -92,7 +109,10 @@ export default function Page() {
               <Tooltip>
                 <TooltipTrigger
                   className="rounded-full hover:bg-muted h-12 w-12 p-1 flex justify-center self-center"
-                  onClick={() => setIsOpen((prev) => !prev)}
+                  onClick={() => {
+                    setDidUserOpen(true);
+                    setIsOpen((prev) => !prev);
+                  }}
                 >
                   <Maximize2
                     className={cn(
@@ -154,23 +174,22 @@ export default function Page() {
         <div className="p-4 pt-2">
           {getFriends().map(
             ({
+              conversation_id,
               first_name,
               last_name,
-              id,
               username,
               avatar,
             }) => {
               return (
                 <ConvoCard
-                  key={id}
-                  id={id}
+                  key={conversation_id}
+                  id={conversation_id!}
                   first_name={first_name!}
                   last_name={last_name!}
                   username={username!}
                   image={avatar}
                   isOpen={isOpen}
-                  onSelect={() => setSelected(id)}
-                  isSelected={selected === id}
+                  pathname={pathname}
                 />
               );
             }

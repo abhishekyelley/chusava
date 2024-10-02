@@ -1,24 +1,25 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Convos } from "@/components/chats/convos";
 
 export default function Layout({
-  convo,
-  people,
+  children,
 }: {
-  convo: React.ReactNode;
-  people: React.ReactNode;
+  children: React.ReactNode;
 }) {
   return (
     <Card>
       <CardContent className="p-0">
         <div className="flex h-min">
-          <div className="w-min h-[80dvh]">{convo}</div>
+          <div className="md:w-min h-[80dvh]">
+            <Convos />
+          </div>
           <Separator
-            className="h-[80dvh]"
+            className="h-[80dvh] hidden md:block"
             orientation="vertical"
           />
-          <div className="w-min h-96">
-            <div className="p-4 w-full">{people}</div>
+          <div className="hidden md:flex w-full">
+            {children}
           </div>
         </div>
       </CardContent>

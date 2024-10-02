@@ -6,7 +6,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { User } from "lucide-react";
 import Link from "next/link";
-import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { UserInfoDialog } from "@/components/common/user-info-dialog";
 import { AvatarHover } from "@/components/common/avatar-hover";
@@ -87,7 +86,6 @@ export function UserCard({
               <span className="hidden md:block">Info</span>
             </Button>
           </UserInfoDialog>
-          <Separator orientation="vertical" />
           {children}
         </div>
       </div>

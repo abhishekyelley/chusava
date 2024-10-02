@@ -7,8 +7,147 @@ export type Json =
   | Json[]
 
 export type Database = {
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          operationName?: string
+          query?: string
+          variables?: Json
+          extensions?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
+      conversation_lists: {
+        Row: {
+          conversation_id: string | null
+          created_at: string
+          id: string
+          list_id: string | null
+          name: string
+        }
+        Insert: {
+          conversation_id?: string | null
+          created_at?: string
+          id?: string
+          list_id?: string | null
+          name: string
+        }
+        Update: {
+          conversation_id?: string | null
+          created_at?: string
+          id?: string
+          list_id?: string | null
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_lists_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_lists_list_id_fkey"
+            columns: ["list_id"]
+            isOneToOne: false
+            referencedRelation: "lists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversation_participants: {
+        Row: {
+          conversation_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          conversation_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_participants_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_participants_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversations: {
+        Row: {
+          created_at: string | null
+          friendship_id: string | null
+          id: string
+          owner_id: string | null
+          type: Database["public"]["Enums"]["conversation_type"]
+        }
+        Insert: {
+          created_at?: string | null
+          friendship_id?: string | null
+          id?: string
+          owner_id?: string | null
+          type: Database["public"]["Enums"]["conversation_type"]
+        }
+        Update: {
+          created_at?: string | null
+          friendship_id?: string | null
+          id?: string
+          owner_id?: string | null
+          type?: Database["public"]["Enums"]["conversation_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversations_friendship_id_fkey"
+            columns: ["friendship_id"]
+            isOneToOne: false
+            referencedRelation: "friends"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       friends: {
         Row: {
           accepted: boolean | null
@@ -48,6 +187,24 @@ export type Database = {
           },
         ]
       }
+      lists: {
+        Row: {
+          created_at: string
+          id: string
+          name: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string | null
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           bio: string | null
@@ -56,6 +213,7 @@ export type Database = {
           last_name: string | null
           urls: string[] | null
           username: string | null
+          full_name: string | null
         }
         Insert: {
           bio?: string | null
@@ -88,13 +246,42 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      full_name: {
+        Args: {
+          "": unknown
+        }
+        Returns: string
+      }
+      get_conversation_id_for_duo: {
+        Args: {
+          requester_id: string
+          requesting_id: string
+        }
+        Returns: string
+      }
+      get_conversations: {
+        Args: Record<PropertyKey, never>
+        Returns: Database["public"]["CompositeTypes"]["conversation_with_user"][]
+      }
     }
     Enums: {
-      [_ in never]: never
+      conversation_type: "group" | "friend"
     }
     CompositeTypes: {
-      [_ in never]: never
+      conversation_with_user: {
+        conversation_id: string | null
+        conversation_type:
+          | Database["public"]["Enums"]["conversation_type"]
+          | null
+        conversation_created_at: string | null
+        friendship_id: string | null
+        user_id: string | null
+        first_name: string | null
+        last_name: string | null
+        username: string | null
+        bio: string | null
+        urls: string[] | null
+      }
     }
   }
 }
