@@ -6,7 +6,7 @@ export const NoResults = ({
   icon = Binoculars,
 }: {
   message?: string;
-  subtitle?: string;
+  subtitle?: React.ReactNode;
   icon?: LucideIcon;
 }) => {
   const Icon = icon;
