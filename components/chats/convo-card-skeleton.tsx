@@ -37,7 +37,7 @@ export function ConvoCardSkeleton({
             <div className="w-full transition-all ease-in-out duration-300 z-10">
               <div className="flex justify-between items-center">
                 <div>
-                  <p
+                  <div
                     className={cn(
                       "w-max max-w-[200px] whitespace-nowrap truncate transition-all ease-in-out duration-300",
                       isOpen
@@ -54,7 +54,7 @@ export function ConvoCardSkeleton({
                         }
                       />
                     </div>
-                  </p>
+                  </div>
                 </div>
               </div>
             </div>

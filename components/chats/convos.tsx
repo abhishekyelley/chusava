@@ -22,19 +22,9 @@ import {
   Search,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { Database } from "@/types/supabase";
 import { usePathname } from "next/navigation";
 import { paths } from "@/lib/constants";
-
-type Unpacked<T> = T extends (infer U)[] ? U : T;
-
-type ConversationsResponse = Array<
-  Unpacked<
-    Database["public"]["Functions"]["get_conversations"]["Returns"]
-  > & {
-    avatar: string;
-  }
->;
+import { ConversationsResponse } from "@/types/api/conversations";
 
 export function Convos() {
   const pathname = usePathname();
@@ -46,11 +36,11 @@ export function Convos() {
       setIsOpen(false);
     }
   }, [pathname, didUserOpen]);
-  const friends = useQuery<
+  const conversations = useQuery<
     ConversationsResponse,
     ErrorResponse
   >({
-    queryKey: ["friends"],
+    queryKey: ["conversations"],
     queryFn: async () => {
       const response =
         await axios.get<ConversationsResponse>(
@@ -59,15 +49,15 @@ export function Convos() {
       return response.data;
     },
   });
-  const getFriends = useCallback(() => {
-    if (!friends.data) {
+  const getConversations = useCallback(() => {
+    if (!conversations.data) {
       return [];
     }
     const query = value.trim().toLowerCase();
     if (!query) {
-      return friends.data;
+      return conversations.data;
     }
-    return friends.data.filter(
+    return conversations.data.filter(
       ({ first_name, last_name, username }) => {
         const full_name = (
           first_name +
@@ -80,11 +70,11 @@ export function Convos() {
         );
       }
     );
-  }, [friends.data, value]);
-  if (friends.isLoading) {
+  }, [conversations.data, value]);
+  if (conversations.isLoading) {
     return <ConvoSkeleton />;
   }
-  if (friends.isError) {
+  if (conversations.isError) {
     return <></>;
   }
   return (
@@ -159,7 +149,7 @@ export function Convos() {
             <div className="relative w-full">
               <Input
                 className="pl-9 disabled:cursor-default"
-                placeholder="Search..."
+                placeholder="Search conversations..."
                 id="chats-search"
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
@@ -171,8 +161,9 @@ export function Convos() {
             </div>
           </div>
         </div>
+        {/* Real Stuff goes here */}
         <div className="p-4 pt-2">
-          {getFriends().map(
+          {getConversations().map(
             ({
               conversation_id,
               first_name,

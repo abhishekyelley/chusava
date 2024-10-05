@@ -1,23 +1,14 @@
-import { Channels } from "@/components/chats/channels";
-import { Separator } from "@/components/ui/separator";
+import { NoResults } from "@/components/dashboard/friends/no-results";
+import { Theater } from "lucide-react";
 
-export default function Page({
-  params: { conversationId },
-}: {
-  params: { conversationId: string };
-}) {
+export default function Page() {
   return (
-    <>
-      <div className="w-min h-96">
-        <div className="p-4 w-full">
-          <Channels />
-        </div>
-      </div>
-      <Separator
-        className="h-[80dvh]"
-        orientation="vertical"
+    <div className="flex self-center justify-center w-full">
+      <NoResults
+        message="Looks like there's more..."
+        subtitle="Pick a list now"
+        icon={Theater}
       />
-      <h1>Hello, {conversationId}</h1>;
-    </>
+    </div>
   );
 }
