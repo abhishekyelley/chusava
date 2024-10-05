@@ -192,18 +192,71 @@ export type Database = {
           created_at: string
           id: string
           name: string | null
+          owner_id: string | null
         }
         Insert: {
           created_at?: string
           id?: string
           name?: string | null
+          owner_id?: string | null
         }
         Update: {
           created_at?: string
           id?: string
           name?: string | null
+          owner_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "lists_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          created_at: string
+          id: string
+          list_id: string
+          sender: string | null
+          tmdb_id: number
+          tmdb_type: Database["public"]["Enums"]["tmdb_type_enum"]
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          list_id: string
+          sender?: string | null
+          tmdb_id: number
+          tmdb_type: Database["public"]["Enums"]["tmdb_type_enum"]
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          list_id?: string
+          sender?: string | null
+          tmdb_id?: number
+          tmdb_type?: Database["public"]["Enums"]["tmdb_type_enum"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_list_id_fkey"
+            columns: ["list_id"]
+            isOneToOne: false
+            referencedRelation: "lists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_fkey"
+            columns: ["sender"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       users: {
         Row: {
@@ -241,6 +294,38 @@ export type Database = {
           },
         ]
       }
+      watched: {
+        Row: {
+          created_at: string
+          id: string
+          tmdb_id: number
+          tmdb_type: Database["public"]["Enums"]["tmdb_type_enum"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          tmdb_id: number
+          tmdb_type: Database["public"]["Enums"]["tmdb_type_enum"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          tmdb_id?: number
+          tmdb_type?: Database["public"]["Enums"]["tmdb_type_enum"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "watched_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -266,6 +351,7 @@ export type Database = {
     }
     Enums: {
       conversation_type: "group" | "friend"
+      tmdb_type_enum: "movie" | "tv"
     }
     CompositeTypes: {
       conversation_with_user: {
