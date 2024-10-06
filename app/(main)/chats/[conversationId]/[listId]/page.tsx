@@ -7,6 +7,8 @@ import {
   AvatarImage,
 } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import axios from "@/lib/axios";
 import { ConversationsResponse } from "@/types/api/conversations";
@@ -76,7 +78,7 @@ export default function Page({
       </div>
       {/* Real stuff start here */}
       <ScrollArea
-        className="h-[calc(80dvh-72px)] w-full"
+        className="h-[calc(80dvh-72px-72px)] w-full"
         type="hover"
       >
         <div className="p-8">
@@ -93,6 +95,20 @@ export default function Page({
             ))}
         </div>
       </ScrollArea>
+      <div className="h-[72px]">
+        <div className="w-full transition-all ease-in-out duration-300 opacity-100">
+          <div className="relative w-full border-t">
+            <Input
+              className="pl-9 disabled:cursor-default h-[72px] border-none rounded-none rounded-br-xl"
+              placeholder="Search titles..."
+              id="titles-search"
+            />
+            <Label htmlFor="titles-search">
+              <Search className="absolute left-0 top-[25%] m-2.5 h-4 w-4 text-muted-foreground" />
+            </Label>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
