@@ -337,23 +337,25 @@ export function MessageCard({
               sender === currentUserData?.id ? "justify-end" : ""
             )}
           >
-            <div className="flex flex-col-reverse mr-2 mb-2">
-              <Avatar
-                className="rounded-none rounded-l-full rounded-t-full border-2"
-                style={{ borderColor: shadowColor ?? "white" }}
-              >
-                <AvatarImage
-                  src={userData?.avatar}
-                  className="object-cover"
-                />
-                <AvatarFallback>
-                  {userData.first_name?.charAt(0)
-                    ? userData.first_name?.charAt(0) +
-                      userData.last_name?.charAt(0)
-                    : "?"}
-                </AvatarFallback>
-              </Avatar>
-            </div>
+            {sender !== currentUserData.id && (
+              <div className="flex flex-col-reverse mr-2 mb-2">
+                <Avatar
+                  className="rounded-none rounded-l-full rounded-t-full border-2"
+                  style={{ borderColor: shadowColor ?? "white" }}
+                >
+                  <AvatarImage
+                    src={userData?.avatar}
+                    className="object-cover"
+                  />
+                  <AvatarFallback>
+                    {userData.first_name?.charAt(0)
+                      ? userData.first_name?.charAt(0) +
+                        userData.last_name?.charAt(0)
+                      : "?"}
+                  </AvatarFallback>
+                </Avatar>
+              </div>
+            )}
             <div className="w-max">
               <HoverCard openDelay={50} closeDelay={100}>
                 <HoverCardTrigger asChild>
