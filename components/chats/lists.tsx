@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/tooltip";
 import { ListCard } from "./list-card";
 import { Database } from "@/types/supabase";
+import { UsersResponse } from "@/types/api/user";
 
 type Lists = Array<
   Database["public"]["Tables"]["conversation_lists"]["Row"] & {
@@ -29,8 +30,17 @@ export function Lists({
   const lists = useQuery<Lists>({
     queryKey: ["lists", conversationId],
     queryFn: async () => {
-      const response = await axios.get(
+      const response = await axios.get<Lists>(
         "/api/chats/" + conversationId
+      );
+      return response.data;
+    },
+  });
+  useQuery<UsersResponse[]>({
+    queryKey: ["conversation_users", conversationId],
+    queryFn: async () => {
+      const response = await axios.get<UsersResponse[]>(
+        "/api/chats/" + conversationId + "/users"
       );
       return response.data;
     },

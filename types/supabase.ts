@@ -348,6 +348,19 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["CompositeTypes"]["conversation_with_user"][]
       }
+      get_users_in_conversation: {
+        Args: {
+          p_conversation_id: string
+        }
+        Returns: {
+          id: string
+          first_name: string
+          last_name: string
+          username: string
+          bio: string
+          urls: string[]
+        }[]
+      }
     }
     Enums: {
       conversation_type: "group" | "friend"

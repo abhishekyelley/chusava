@@ -17,4 +17,10 @@ const brand = {
 };
 Object.freeze(brand);
 
-export { paths, brand };
+const tmdb_base = {
+  home: "https://www.themoviedb.org",
+  image: "https://image.tmdb.org/t/p",
+};
+Object.freeze(tmdb_base);
+
+export { paths, brand, tmdb_base };

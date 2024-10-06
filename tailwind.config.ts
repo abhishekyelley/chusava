@@ -16,6 +16,9 @@ const config: Config = {
 			}
 		},
 		extend: {
+			transitionProperty: {
+				'height-opacity': 'height, opacity',
+			},
 			colors: {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
