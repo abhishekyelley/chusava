@@ -196,6 +196,7 @@ export function MessageCard({
                               variant={
                                 watched ? "default" : "outline"
                               }
+                              className="border"
                               onClick={() =>
                                 setWatched((prev) => !prev)
                               }
@@ -203,17 +204,17 @@ export function MessageCard({
                               <div className="h-8 w-8 items-center self-center flex justify-center">
                                 <Eye
                                   className={cn(
-                                    "self-center transition-height-opacity ease-in-out duration-300",
+                                    "self-center transition-height-opacity ease-in-out duration-300 h-7 w-7",
                                     watched
                                       ? "opacity-0 h-0 w-0"
-                                      : "h-7 w-7"
+                                      : ""
                                   )}
                                 />
                                 <EyeClosedIcon
                                   className={cn(
-                                    "self-center transition-height-opacity ease-in-out duration-300",
+                                    "self-center transition-height-opacity ease-in-out duration-300 h-6 w-6",
                                     watched
-                                      ? "h-6 w-6"
+                                      ? ""
                                       : "opacity-0 h-0 w-0"
                                   )}
                                 />
@@ -337,7 +338,7 @@ export function MessageCard({
               sender === currentUserData?.id ? "justify-end" : ""
             )}
           >
-            {sender !== currentUserData.id && (
+            {sender !== currentUserData?.id && (
               <div className="flex flex-col-reverse mr-2 mb-2">
                 <Avatar
                   className="rounded-none rounded-l-full rounded-t-full border-2"
