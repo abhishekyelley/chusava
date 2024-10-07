@@ -7,21 +7,40 @@ import {
   AvatarImage,
 } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import {
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+  CommandShortcut,
+} from "@/components/ui/command";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useDebounce } from "@/hooks/use-debounce";
 import axios from "@/lib/axios";
+import { cn } from "@/lib/utils";
 import { ConversationsResponse } from "@/types/api/conversations";
 import { Message } from "@/types/api/messages";
 import { UserResponse } from "@/types/api/user";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { MovieSearchResponse } from "@/types/tmdb/tmdb";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { Search } from "lucide-react";
+import { useState } from "react";
 
 export default function Page({
   params: { listId, conversationId },
 }: {
   params: { listId: string; conversationId: string };
 }) {
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState("");
+  const query = useDebounce(value, 300);
   const queryClient = useQueryClient();
   const conversationData = queryClient
     .getQueryData<ConversationsResponse>(["conversations"])
@@ -38,6 +57,20 @@ export default function Page({
       return response.data;
     },
   });
+  const mutation = useMutation<MovieSearchResponse>({
+    mutationFn: async () => {
+      const response = await axios.get<MovieSearchResponse>(
+        `/api/tmdb?query=${query}&type=movie`
+      );
+      return response.data;
+    },
+    onSuccess: (data) => {
+      setData([...data.results!]);
+    },
+  });
+  const [data, setData] = useState<NonNullable<
+    MovieSearchResponse["results"]
+  > | null>(null);
   return (
     <div className="w-full rounded-r-xl">
       <div className="rounded-tr-xl sticky top-0 z-10 w-full bg-background/95 shadow backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:shadow-secondary">
@@ -76,6 +109,55 @@ export default function Page({
           </div>
         </div>
       </div>
+      <CommandDialog
+        open={open}
+        onOpenChange={setOpen}
+        commandProps={{ shouldFilter: false }}
+      >
+        <CommandInput
+          placeholder="Type a command or search..."
+          value={value}
+          onValueChange={setValue}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              mutation.mutate();
+            }
+          }}
+        />
+        <CommandList
+          className={cn(
+            "overflow-y-auto",
+            "[&::-webkit-scrollbar-thumb]:rounded-md",
+            "[&::-webkit-scrollbar]:w-2",
+            "[&::-webkit-scrollbar-track]:bg-secondary",
+            "[&::-webkit-scrollbar-thumb]:bg-primary"
+          )}
+        >
+          <CommandEmpty>No results found.</CommandEmpty>
+          <CommandGroup heading="Movies">
+            {data?.map((item) => (
+              <CommandItem key={item.id}>
+                <span>{item.title}</span>
+              </CommandItem>
+            ))}
+          </CommandGroup>
+          <CommandSeparator />
+          <CommandGroup heading="TV Shows">
+            <CommandItem>
+              <span>Profile</span>
+              <CommandShortcut>⌘P</CommandShortcut>
+            </CommandItem>
+            <CommandItem>
+              <span>Mail</span>
+              <CommandShortcut>⌘B</CommandShortcut>
+            </CommandItem>
+            <CommandItem>
+              <span>Settings</span>
+              <CommandShortcut>⌘S</CommandShortcut>
+            </CommandItem>
+          </CommandGroup>
+        </CommandList>
+      </CommandDialog>
       {/* Real stuff start here */}
       <ScrollArea
         className="h-[calc(80dvh-72px-72px)] w-full"
@@ -96,18 +178,7 @@ export default function Page({
         </div>
       </ScrollArea>
       <div className="h-[72px]">
-        <div className="w-full transition-all ease-in-out duration-300 opacity-100">
-          <div className="relative w-full border-t">
-            <Input
-              className="pl-9 disabled:cursor-default h-[72px] border-none rounded-none rounded-br-xl"
-              placeholder="Search titles..."
-              id="titles-search"
-            />
-            <Label htmlFor="titles-search">
-              <Search className="absolute left-0 top-[25%] m-2.5 h-4 w-4 text-muted-foreground" />
-            </Label>
-          </div>
-        </div>
+        <Button onClick={() => setOpen(true)}>Send a rec</Button>
       </div>
     </div>
   );

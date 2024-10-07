@@ -19,3 +19,6 @@ export type MovieImagesResponse =
   paths["/3/movie/{movie_id}/images"]["get"]["responses"]["200"]["content"]["application/json"];
 export type TVImagesResponse =
   paths["/3/tv/{series_id}/images"]["get"]["responses"]["200"]["content"]["application/json"];
+
+export type MovieSearchResponse =
+  paths["/3/search/movie"]["get"]["responses"]["200"]["content"]["application/json"];

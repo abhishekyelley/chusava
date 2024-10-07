@@ -35,17 +35,22 @@ export function ListCard({
   return (
     <TooltipProvider delayDuration={50}>
       <Tooltip>
-        <div
-          className={cn(
-            "flex justify-between",
-            "rounded-md px-3 py-1 my-2 border-muted border",
-            "hover:cursor-pointer hover:bg-muted/50",
-            "transition-all ease-in-out duration-300",
-            pathname.includes(listId) ? "bg-muted/50" : ""
-          )}
+        <Link
+          href={`${paths.chats}/${conversationId}/${listId}`}
+          className="w-full mr-2 block"
         >
-          <TooltipTrigger className="my-2" asChild>
-            <Link href={`${paths.chats}/${conversationId}/${listId}`} className="w-full mr-2">
+          <div
+            className={cn(
+              "flex justify-between",
+              "rounded-md pl-3 pr-1 py-0.5 my-2 border-muted border",
+              "hover:cursor-pointer dark:hover:bg-muted/50 hover:bg-gray-300",
+              "transition-all ease-in-out duration-300",
+              pathname.includes(listId)
+                ? "dark:hover:bg-muted/50 hover:bg-gray-300"
+                : ""
+            )}
+          >
+            <TooltipTrigger className="my-2 w-full pr-1" asChild>
               <div className="flex items-center">
                 <div className="w-full transition-all ease-in-out duration-300 z-10">
                   <div className="flex justify-between items-center">
@@ -66,25 +71,29 @@ export function ListCard({
                   </div>
                 </div>
               </div>
-            </Link>
-          </TooltipTrigger>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <MoreVertical className="h-4 w-4" />
-                <span className="sr-only">More</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem>
-                <Pencil className="h-4 w-4 mr-2" /> Rename
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Share className="h-4 w-4 mr-2" /> Share
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+            </TooltipTrigger>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="self-center"
+                >
+                  <MoreVertical className="h-4 w-4" />
+                  <span className="sr-only">More</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem>
+                  <Pencil className="h-4 w-4 mr-2" /> Rename
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Share className="h-4 w-4 mr-2" /> Share
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </Link>
 
         <TooltipContent side="top">
           <>

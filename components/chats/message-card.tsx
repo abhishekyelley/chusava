@@ -205,17 +205,13 @@ export function MessageCard({
                                 <Eye
                                   className={cn(
                                     "self-center transition-height-opacity ease-in-out duration-300 h-7 w-7",
-                                    watched
-                                      ? "opacity-0 h-0 w-0"
-                                      : ""
+                                    watched ? "opacity-0 h-0 w-0" : ""
                                   )}
                                 />
                                 <EyeClosedIcon
                                   className={cn(
                                     "self-center transition-height-opacity ease-in-out duration-300 h-6 w-6",
-                                    watched
-                                      ? ""
-                                      : "opacity-0 h-0 w-0"
+                                    watched ? "" : "opacity-0 h-0 w-0"
                                   )}
                                 />
                               </div>
@@ -269,13 +265,13 @@ export function MessageCard({
                         {tmdb.data.vote_average.toPrecision(3)}
                       </Badge>
                     </div>
-                    {tmdb_type === "movie" && (
-                      <div>
-                        <h4 className="text-xl font-bold mb-2">
-                          Links
-                        </h4>
-                        <div className="flex space-x-4">
-                          <TooltipProvider delayDuration={300}>
+                    <TooltipProvider delayDuration={100}>
+                      {tmdb_type === "movie" && (
+                        <div>
+                          <h4 className="text-xl font-bold mb-2">
+                            Links
+                          </h4>
+                          <div className="flex space-x-4">
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Link
@@ -297,9 +293,7 @@ export function MessageCard({
                                 Letterboxd
                               </TooltipContent>
                             </Tooltip>
-                          </TooltipProvider>
-                          {(tmdb.data as MovieResponse).imdb_id && (
-                            <TooltipProvider delayDuration={300}>
+                            {(tmdb.data as MovieResponse).imdb_id && (
                               <Tooltip>
                                 <TooltipTrigger asChild>
                                   <Link
@@ -322,11 +316,11 @@ export function MessageCard({
                                   IMDb
                                 </TooltipContent>
                               </Tooltip>
-                            </TooltipProvider>
-                          )}
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
+                    </TooltipProvider>
                   </div>
                 </div>
               </ScrollArea>
@@ -339,7 +333,7 @@ export function MessageCard({
             )}
           >
             {sender !== currentUserData?.id && (
-              <div className="flex flex-col-reverse mr-2 mb-2">
+              <div className="flex flex-col-reverse mr-2 mb-1">
                 <Avatar
                   className="rounded-none rounded-l-full rounded-t-full border-2"
                   style={{ borderColor: shadowColor ?? "white" }}
