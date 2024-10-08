@@ -46,7 +46,7 @@ export function ListCard({
               "hover:cursor-pointer dark:hover:bg-muted/50 hover:bg-gray-300",
               "transition-all ease-in-out duration-300",
               pathname.includes(listId)
-                ? "dark:hover:bg-muted/50 hover:bg-gray-300"
+                ? "dark:bg-muted/50 bg-gray-300"
                 : ""
             )}
           >

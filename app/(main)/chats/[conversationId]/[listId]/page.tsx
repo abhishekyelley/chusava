@@ -15,21 +15,25 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-  CommandShortcut,
 } from "@/components/ui/command";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useDebounce } from "@/hooks/use-debounce";
 import axios from "@/lib/axios";
+import { tmdb_base } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { ConversationsResponse } from "@/types/api/conversations";
 import { Message } from "@/types/api/messages";
 import { UserResponse } from "@/types/api/user";
-import { MovieSearchResponse } from "@/types/tmdb/tmdb";
+import {
+  MovieSearchResponse,
+  TVSearchResponse,
+} from "@/types/tmdb/tmdb";
 import {
   useMutation,
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
+import { CommandLoading } from "cmdk";
 import { Search } from "lucide-react";
 import { useState } from "react";
 
@@ -57,20 +61,45 @@ export default function Page({
       return response.data;
     },
   });
-  const mutation = useMutation<MovieSearchResponse>({
-    mutationFn: async () => {
+  const movies = useQuery<MovieSearchResponse>({
+    queryKey: ["media", "movie", query],
+    queryFn: async () => {
       const response = await axios.get<MovieSearchResponse>(
         `/api/tmdb?query=${query}&type=movie`
       );
       return response.data;
     },
-    onSuccess: (data) => {
-      setData([...data.results!]);
+  });
+  const shows = useQuery<TVSearchResponse>({
+    queryKey: ["media", "tv", query],
+    queryFn: async () => {
+      const response = await axios.get<TVSearchResponse>(
+        `/api/tmdb?query=${query}&type=tv`
+      );
+      return response.data;
     },
   });
-  const [data, setData] = useState<NonNullable<
-    MovieSearchResponse["results"]
-  > | null>(null);
+  const sendMessage = useMutation({
+    mutationFn: async ({
+      tmdb_id,
+      tmdb_type,
+    }: {
+      tmdb_id: number;
+      tmdb_type: "movie" | "tv";
+    }) => {
+      const response = await axios.post(
+        `/api/chats/messages/${listId}`,
+        { tmdb_id, tmdb_type }
+      );
+      return response.data;
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["messages", listId],
+      });
+      setOpen(false);
+    },
+  });
   return (
     <div className="w-full rounded-r-xl">
       <div className="rounded-tr-xl sticky top-0 z-10 w-full bg-background/95 shadow backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:shadow-secondary">
@@ -113,16 +142,13 @@ export default function Page({
         open={open}
         onOpenChange={setOpen}
         commandProps={{ shouldFilter: false }}
+        title="Media search"
+        description="Search for a movie or tv show to send as a message"
       >
         <CommandInput
           placeholder="Type a command or search..."
           value={value}
           onValueChange={setValue}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              mutation.mutate();
-            }
-          }}
         />
         <CommandList
           className={cn(
@@ -133,28 +159,83 @@ export default function Page({
             "[&::-webkit-scrollbar-thumb]:bg-primary"
           )}
         >
+          {(movies.isLoading || shows.isLoading) && (
+            <CommandLoading>Loading...</CommandLoading>
+          )}
           <CommandEmpty>No results found.</CommandEmpty>
+
           <CommandGroup heading="Movies">
-            {data?.map((item) => (
-              <CommandItem key={item.id}>
-                <span>{item.title}</span>
-              </CommandItem>
-            ))}
+            {movies.data?.results?.length &&
+              movies.data.results.map((item) => (
+                <CommandItem key={item.id}>
+                  <button
+                    className="flex items-center space-x-2 w-full h-full"
+                    onClick={() =>
+                      sendMessage.mutate({
+                        tmdb_id: item.id,
+                        tmdb_type: "movie",
+                      })
+                    }
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={
+                        item.poster_path
+                          ? tmdb_base.image +
+                            "/original" +
+                            item.poster_path
+                          : ""
+                      }
+                      alt={`${item.title}-${item.id}-movie-poster`}
+                      className="h-[150px] w-auto rounded-md"
+                    />
+                    <span className="mr-1 font-bold">
+                      {item.title}
+                    </span>
+                    <span className="italic font-semibold text-muted-foreground">{`(${
+                      item.release_date?.split("-")[0] ?? "unknown"
+                    })`}</span>
+                  </button>
+                </CommandItem>
+              ))}
           </CommandGroup>
-          <CommandSeparator />
+
+          {(movies.data?.results?.length ||
+            shows.data?.results?.length) && <CommandSeparator />}
           <CommandGroup heading="TV Shows">
-            <CommandItem>
-              <span>Profile</span>
-              <CommandShortcut>⌘P</CommandShortcut>
-            </CommandItem>
-            <CommandItem>
-              <span>Mail</span>
-              <CommandShortcut>⌘B</CommandShortcut>
-            </CommandItem>
-            <CommandItem>
-              <span>Settings</span>
-              <CommandShortcut>⌘S</CommandShortcut>
-            </CommandItem>
+            {shows.data?.results?.length &&
+              shows.data.results.map((item) => (
+                <CommandItem key={item.id}>
+                  <button
+                    className="flex items-center space-x-2 w-full h-full"
+                    onClick={() =>
+                      sendMessage.mutate({
+                        tmdb_id: item.id,
+                        tmdb_type: "tv",
+                      })
+                    }
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={
+                        item.poster_path
+                          ? tmdb_base.image +
+                            "/original" +
+                            item.poster_path
+                          : ""
+                      }
+                      alt={`${item.name}-${item.id}-tv-poster`}
+                      className="h-[150px] w-auto rounded-md"
+                    />
+                    <span className="mr-1 font-bold">
+                      {item.name}
+                    </span>
+                    <span className="italic font-semibold text-muted-foreground">{`(${
+                      item.first_air_date?.split("-")[0] ?? "unknown"
+                    })`}</span>
+                  </button>
+                </CommandItem>
+              ))}
           </CommandGroup>
         </CommandList>
       </CommandDialog>
@@ -177,7 +258,7 @@ export default function Page({
             ))}
         </div>
       </ScrollArea>
-      <div className="h-[72px]">
+      <div className="h-[72px] flex items-center justify-center">
         <Button onClick={() => setOpen(true)}>Send a rec</Button>
       </div>
     </div>

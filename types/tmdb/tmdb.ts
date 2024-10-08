@@ -22,3 +22,5 @@ export type TVImagesResponse =
 
 export type MovieSearchResponse =
   paths["/3/search/movie"]["get"]["responses"]["200"]["content"]["application/json"];
+export type TVSearchResponse =
+  paths["/3/search/tv"]["get"]["responses"]["200"]["content"]["application/json"];

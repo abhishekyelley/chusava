@@ -61,12 +61,6 @@ export function MessageCard({
       conversationId,
     ])
     ?.find((item) => item.id === sender);
-  console.log(
-    queryClient.getQueryData<UsersResponse[]>([
-      "conversation_users",
-      conversationId,
-    ])
-  );
   const tmdb = useQuery({
     queryKey: [
       "tmdb",
