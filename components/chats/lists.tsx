@@ -1,7 +1,12 @@
 "use client";
 
 import axios from "@/lib/axios";
-import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { CirclePlus, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -15,6 +20,19 @@ import {
 import { ListCard } from "./list-card";
 import { Database } from "@/types/supabase";
 import { UsersResponse } from "@/types/api/user";
+import { paths } from "@/lib/constants";
+import { usePathname } from "next/navigation";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "../ui/dialog";
+import { Button } from "../ui/button";
+import { DialogTrigger } from "@radix-ui/react-dialog";
+import { useState } from "react";
 
 type Lists = Array<
   Database["public"]["Tables"]["conversation_lists"]["Row"] & {
@@ -27,11 +45,15 @@ export function Lists({
 }: {
   conversationId: string;
 }) {
+  const pathname = usePathname();
+  const queryClient = useQueryClient();
+  const [name, setName] = useState("");
+  const [open, setOpen] = useState(false);
   const lists = useQuery<Lists>({
     queryKey: ["lists", conversationId],
     queryFn: async () => {
       const response = await axios.get<Lists>(
-        "/api/chats/" + conversationId
+        paths.api.conversationsId`${conversationId}`
       );
       return response.data;
     },
@@ -40,9 +62,72 @@ export function Lists({
     queryKey: ["conversation_users", conversationId],
     queryFn: async () => {
       const response = await axios.get<UsersResponse[]>(
-        "/api/chats/" + conversationId + "/users"
+        paths.api.conversationUsers`${conversationId}`
       );
       return response.data;
+    },
+  });
+  const rename = useMutation<
+    number,
+    Error,
+    {
+      listId: string;
+      name: string;
+      handleSettled: () => void;
+    }
+  >({
+    mutationFn: async ({ listId, name }) => {
+      const response = await axios.patch(
+        paths.api.listsUpdate`${listId}`,
+        { name }
+      );
+      return response.status;
+    },
+    onMutate: () => {
+      queryClient.cancelQueries({
+        queryKey: ["lists", conversationId],
+      });
+    },
+    onError: (error) => {
+      toast.error("Could not rename the List");
+      console.log(error);
+    },
+    onSuccess: () => {
+      toast.success("Successfully renamed list");
+    },
+    onSettled: (data, error, { handleSettled }) => {
+      queryClient.invalidateQueries({
+        queryKey: ["lists", conversationId],
+      });
+      handleSettled();
+    },
+  });
+  const addList = useMutation<number, Error, { name: string }>({
+    mutationFn: async ({ name }) => {
+      const response = await axios.post(paths.api.lists, {
+        name,
+        conversationId,
+      });
+      return response.status;
+    },
+    onMutate: () => {
+      queryClient.cancelQueries({
+        queryKey: ["lists", conversationId],
+      });
+    },
+    onError: (error) => {
+      toast.error("Could not create a New List");
+      console.log(error);
+    },
+    onSuccess: () => {
+      toast.success("Successfully created a New List");
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["lists", conversationId],
+      });
+      setName("");
+      setOpen(false);
     },
   });
   return (
@@ -55,12 +140,57 @@ export function Lists({
             </h3>
             <TooltipProvider delayDuration={100}>
               <Tooltip>
-                <TooltipTrigger
-                  className="rounded-full hover:bg-muted h-12 w-12 p-1 flex justify-center self-center"
-                  onClick={() => {}}
-                >
-                  <CirclePlus className="self-center transition-all ease-in-out duration-300" />
-                </TooltipTrigger>
+                <Dialog open={open} onOpenChange={setOpen}>
+                  <DialogTrigger>
+                    <TooltipTrigger
+                      className="rounded-full hover:bg-muted h-12 w-12 p-1 flex justify-center self-center"
+                      onClick={() => {}}
+                    >
+                      <CirclePlus className="self-center transition-all ease-in-out duration-300" />
+                    </TooltipTrigger>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[425px]">
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        addList.mutate({ name });
+                      }}
+                      className="space-y-4"
+                    >
+                      <DialogHeader>
+                        <DialogTitle>Add List</DialogTitle>
+                        <DialogDescription>
+                          Create your list. Hit save when you
+                          {"'"}re done.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="grid gap-4 py-4">
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label
+                            htmlFor="name"
+                            className="text-right"
+                          >
+                            Name
+                          </Label>
+                          <Input
+                            id="name"
+                            className="col-span-3"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button
+                          type="submit"
+                          disabled={addList.isPending}
+                        >
+                          {addList.isPending ? "Saving..." : "Save"}
+                        </Button>
+                      </DialogFooter>
+                    </form>
+                  </DialogContent>
+                </Dialog>
                 <TooltipContent>Add List</TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -92,6 +222,8 @@ export function Lists({
                   listNameinConversation={list.name}
                   listName={list.list.name}
                   time={list.created_at}
+                  pathname={pathname}
+                  rename={rename}
                 />
               ))}
             </>

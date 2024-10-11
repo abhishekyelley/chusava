@@ -8,7 +8,31 @@ const paths = {
   profile: "/settings/profile",
   chats: "/chats",
   userChat: "/chat/user",
-};
+  api: {
+    lists: "/api/chats/lists",
+    conversations: "/api/chats/conversations",
+    messages: function (
+      strings: TemplateStringsArray,
+      listId: string
+    ) {
+      return `${this.lists}/${listId}/messages`;
+    },
+    conversationsId: function (
+      strings: TemplateStringsArray,
+      conversationId: string
+    ) {
+      return `${this.conversations}/${conversationId}`;
+    },
+    conversationUsers: function (
+      strings: TemplateStringsArray,
+      conversationId: string
+    ) {
+      return `${this.conversations}/${conversationId}/users`;
+    },
+    listsUpdate: (strings: TemplateStringsArray, listId: string) =>
+      `/api/chats/lists/${listId}`,
+  },
+} as const;
 Object.freeze(paths);
 
 const brand = {

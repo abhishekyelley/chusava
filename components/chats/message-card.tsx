@@ -37,6 +37,7 @@ import {
 } from "@/components/ui/tooltip";
 import Link from "next/link";
 import Image from "next/image";
+import { MessageCardSkeleton } from "./message-card-skeleton";
 
 const fac = new FastAverageColor();
 
@@ -81,7 +82,7 @@ export function MessageCard({
     : "";
   const getColor = useCallback(async () => {
     try {
-      const color = await fac.getColorAsync(image, {
+      const color = await fac.getColorAsync(image + "?for-no-cache", {
         crossOrigin: "allow",
       });
       setShadowColor(color.hex);
@@ -125,7 +126,11 @@ export function MessageCard({
   return (
     <>
       {tmdb.isError && <p>Error</p>}
-      {tmdb.isLoading && <p>Loading...</p>}
+      {tmdb.isLoading && (
+        <MessageCardSkeleton
+          sender={sender === currentUserData?.id}
+        />
+      )}
       {tmdb.data && (
         <>
           <Dialog open={open} onOpenChange={setOpen}>
@@ -323,6 +328,7 @@ export function MessageCard({
           <div
             className={cn(
               "flex",
+              "my-3",
               sender === currentUserData?.id ? "justify-end" : ""
             )}
           >

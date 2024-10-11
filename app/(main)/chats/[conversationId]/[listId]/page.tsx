@@ -1,6 +1,8 @@
 "use client";
 
 import { MessageCard } from "@/components/chats/message-card";
+import { MessageCardSkeleton } from "@/components/chats/message-card-skeleton";
+import { NoResults } from "@/components/dashboard/friends/no-results";
 import {
   Avatar,
   AvatarFallback,
@@ -19,7 +21,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useDebounce } from "@/hooks/use-debounce";
 import axios from "@/lib/axios";
-import { tmdb_base } from "@/lib/constants";
+import { paths, tmdb_base } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { ConversationsResponse } from "@/types/api/conversations";
 import { Message } from "@/types/api/messages";
@@ -34,8 +36,8 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { CommandLoading } from "cmdk";
-import { Search } from "lucide-react";
-import { useState } from "react";
+import { Popcorn, Search } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
 export default function Page({
   params: { listId, conversationId },
@@ -44,6 +46,7 @@ export default function Page({
 }) {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
+  const lastMessageRef = useRef<HTMLDivElement | null>(null);
   const query = useDebounce(value, 300);
   const queryClient = useQueryClient();
   const conversationData = queryClient
@@ -56,7 +59,7 @@ export default function Page({
     queryKey: ["messages", listId],
     queryFn: async () => {
       const response = await axios.get<Message[]>(
-        "/api/chats/messages/" + listId
+        paths.api.messages`${listId}`
       );
       return response.data;
     },
@@ -88,7 +91,7 @@ export default function Page({
       tmdb_type: "movie" | "tv";
     }) => {
       const response = await axios.post(
-        `/api/chats/messages/${listId}`,
+        paths.api.messages`${listId}`,
         { tmdb_id, tmdb_type }
       );
       return response.data;
@@ -100,6 +103,13 @@ export default function Page({
       setOpen(false);
     },
   });
+  useEffect(() => {
+    if (!messages.isLoading && !messages.isError && messages.data) {
+      lastMessageRef.current
+        ? lastMessageRef.current.scrollIntoView()
+        : null;
+    }
+  }, [messages]);
   return (
     <div className="w-full rounded-r-xl">
       <div className="rounded-tr-xl sticky top-0 z-10 w-full bg-background/95 shadow backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:shadow-secondary">
@@ -245,16 +255,40 @@ export default function Page({
         type="hover"
       >
         <div className="p-8">
-          {messages.isLoading && <h1>Loading...</h1>}
+          {messages.isLoading && (
+            <>
+              <MessageCardSkeleton sender={true} />
+              <MessageCardSkeleton sender={false} />
+              <MessageCardSkeleton sender={true} />
+              <MessageCardSkeleton sender={true} />
+              <MessageCardSkeleton sender={false} />
+            </>
+          )}
           {messages.isError && <h1>Error!</h1>}
+          {messages.data && messages.data.length === 0 && (
+            <NoResults
+              message="Ya'll need to start something"
+              subtitle="Send a rec. Press the button"
+              icon={Popcorn}
+            />
+          )}
           {messages.data &&
-            messages.data.map((item) => (
-              <MessageCard
+            messages.data.length > 0 &&
+            messages.data.map((item, index) => (
+              <div
                 key={item.id}
-                {...item}
-                currentUserData={currentUserData}
-                conversationId={conversationId}
-              />
+                ref={
+                  index === messages.data.length - 1
+                    ? lastMessageRef
+                    : undefined
+                }
+              >
+                <MessageCard
+                  {...item}
+                  currentUserData={currentUserData}
+                  conversationId={conversationId}
+                />
+              </div>
             ))}
         </div>
       </ScrollArea>
