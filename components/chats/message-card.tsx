@@ -10,7 +10,7 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
-import { CalendarIcon, Eye } from "lucide-react";
+import { CalendarIcon, Ellipsis } from "lucide-react";
 import {
   Avatar,
   AvatarFallback,
@@ -28,7 +28,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { EyeClosedIcon } from "@radix-ui/react-icons";
 import {
   TooltipTrigger,
   TooltipProvider,
@@ -38,6 +37,7 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import { MessageCardSkeleton } from "./message-card-skeleton";
+import { Watched } from "@/components/chats/watched";
 
 const fac = new FastAverageColor();
 
@@ -190,39 +190,10 @@ export function MessageCard({
                       />
                     </div>
                     <div className="flex justify-center">
-                      <TooltipProvider delayDuration={100}>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant={
-                                watched ? "default" : "outline"
-                              }
-                              className="border"
-                              onClick={() =>
-                                setWatched((prev) => !prev)
-                              }
-                            >
-                              <div className="h-8 w-8 items-center self-center flex justify-center">
-                                <Eye
-                                  className={cn(
-                                    "self-center transition-height-opacity ease-in-out duration-300 h-7 w-7",
-                                    watched ? "opacity-0 h-0 w-0" : ""
-                                  )}
-                                />
-                                <EyeClosedIcon
-                                  className={cn(
-                                    "self-center transition-height-opacity ease-in-out duration-300 h-6 w-6",
-                                    watched ? "" : "opacity-0 h-0 w-0"
-                                  )}
-                                />
-                              </div>
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            {watched ? "Unwatch" : "Watch"}
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                      <Watched
+                        watched={watched}
+                        setWatched={setWatched}
+                      />
                     </div>
                   </div>
                   <div className="xl:col-span-3 p-4 space-y-4">
@@ -360,6 +331,7 @@ export function MessageCard({
                     <div
                       className={cn(
                         "rounded-md w-max",
+                        "relative",
                         "transition-all ease-in-out duration-300"
                       )}
                       style={{
@@ -377,7 +349,12 @@ export function MessageCard({
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
-                        className="rounded-md transition-all ease-in-out duration-300 object-cover h-[220px] w-auto hover:scale-105"
+                        className={cn(
+                          "rounded-md object-cover",
+                          "transition-all ease-in-out duration-300",
+                          "h-[220px] w-[146.66px]",
+                          isHovering ? "scale-105" : "scale-100"
+                        )}
                         alt={
                           tmdb_type === "movie"
                             ? (tmdb.data as MovieResponse).title ??
@@ -387,9 +364,63 @@ export function MessageCard({
                         }
                         src={image}
                       />
+                      <div className="absolute bottom-0">
+                        <div
+                          className={cn(
+                            "w-[146.66px] max-h-20 overflow-clip",
+                            "rounded-b-md",
+                            "transition-all ease-in-out duration-100",
+                            "bg-[#00000085]"
+                          )}
+                          style={{
+                            opacity: isHovering ? "0" : "100",
+                          }}
+                        >
+                          <p className="p-2 text-center font-bold">
+                            {tmdb_type === "movie"
+                              ? (tmdb.data as MovieResponse).title
+                              : tmdb_type === "tv"
+                              ? (tmdb.data as TVResponse).name
+                              : null}
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   </button>
                 </HoverCardTrigger>
+                <div>
+                  <div
+                    className={cn(
+                      "flex items-center justify-between",
+                      "bg-slate-950 text-sm",
+                      "rounded-lg border border-muted",
+                      "w-[146.66px]"
+                    )}
+                  >
+                    <Watched
+                      watched={watched}
+                      setWatched={setWatched}
+                      className="rounded-r-none border-r px-2"
+                    />
+                    <div className="flex justify-center items-center self-center">
+                      <p className="italic">
+                        {tmdb_type === "movie"
+                          ? (tmdb.data as MovieResponse).runtime +
+                            " mins"
+                          : tmdb_type === "tv"
+                          ? (tmdb.data as TVResponse)
+                              .number_of_episodes + " EPs"
+                          : null}
+                      </p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      className="rounded-l-none border-l px-2"
+                    >
+                      <Ellipsis />
+                    </Button>
+                  </div>
+                </div>
                 <HoverCardContent
                   className="mx-4 max-w-96 w-max"
                   side={
