@@ -70,12 +70,14 @@ export function MessageCard({
         type: tmdb_type,
       },
     ],
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       const response = await axios.get<MovieResponse | TVResponse>(
-        `/api/tmdb/${tmdb_type}/${tmdb_id}`
+        `/api/tmdb/${tmdb_type}/${tmdb_id}`,
+        { signal }
       );
       return response.data;
     },
+    staleTime: Infinity,
   });
   const image = tmdb.data?.poster_path
     ? tmdb_base.image + "/original" + tmdb.data.poster_path

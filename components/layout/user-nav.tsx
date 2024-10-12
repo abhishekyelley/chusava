@@ -32,8 +32,10 @@ import { UserResponse } from "@/types/api/user";
 
 export function UserNav() {
   const { data: user } = useQuery({
-    queryFn: async () => {
-      const response = await axios.get<UserResponse>("/api/user");
+    queryFn: async ({ signal }) => {
+      const response = await axios.get<UserResponse>("/api/user", {
+        signal,
+      });
       return response.data;
     },
     queryKey: ["user"],

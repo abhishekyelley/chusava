@@ -51,18 +51,20 @@ export function Lists({
   const [open, setOpen] = useState(false);
   const lists = useQuery<Lists>({
     queryKey: ["lists", conversationId],
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       const response = await axios.get<Lists>(
-        paths.api.conversationsId`${conversationId}`
+        paths.api.conversationsId`${conversationId}`,
+        { signal }
       );
       return response.data;
     },
   });
   useQuery<UsersResponse[]>({
     queryKey: ["conversation_users", conversationId],
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       const response = await axios.get<UsersResponse[]>(
-        paths.api.conversationUsers`${conversationId}`
+        paths.api.conversationUsers`${conversationId}`,
+        { signal }
       );
       return response.data;
     },

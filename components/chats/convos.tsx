@@ -15,12 +15,7 @@ import {
   TooltipContent,
 } from "@/components/ui/tooltip";
 import { useQuery } from "@tanstack/react-query";
-import {
-  Ellipsis,
-  Maximize2,
-  Minimize2,
-  Search,
-} from "lucide-react";
+import { Ellipsis, Maximize2, Minimize2, Search } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { paths } from "@/lib/constants";
@@ -41,11 +36,11 @@ export function Convos() {
     ErrorResponse
   >({
     queryKey: ["conversations"],
-    queryFn: async () => {
-      const response =
-        await axios.get<ConversationsResponse>(
-          "/api/chats"
-        );
+    queryFn: async ({ signal }) => {
+      const response = await axios.get<ConversationsResponse>(
+        "/api/chats",
+        { signal }
+      );
       return response.data;
     },
   });
@@ -64,10 +59,7 @@ export function Convos() {
           " " +
           last_name
         ).toLowerCase();
-        return (
-          full_name.includes(query) ||
-          username?.includes(query)
-        );
+        return full_name.includes(query) || username?.includes(query);
       }
     );
   }, [conversations.data, value]);
@@ -108,18 +100,14 @@ export function Convos() {
                     className={cn(
                       "self-center",
                       "transition-all ease-in-out duration-300",
-                      isOpen
-                        ? "opacity-0 w-0"
-                        : "-rotate-[360deg]"
+                      isOpen ? "opacity-0 w-0" : "-rotate-[360deg]"
                     )}
                   />
                   <Minimize2
                     className={cn(
                       "self-center",
                       "transition-all ease-in-out duration-300",
-                      isOpen
-                        ? "-rotate-[360deg]"
-                        : "opacity-0 w-0"
+                      isOpen ? "-rotate-[360deg]" : "opacity-0 w-0"
                     )}
                   />
                 </TooltipTrigger>
@@ -129,12 +117,7 @@ export function Convos() {
               </Tooltip>
             </TooltipProvider>
           </div>
-          <div
-            className={cn(
-              "relative",
-              isOpen ? "opacity-0" : ""
-            )}
-          >
+          <div className={cn("relative", isOpen ? "opacity-0" : "")}>
             <div className="absolute top-4 left-[50%] -translate-x-[50%]">
               <Ellipsis />
             </div>

@@ -32,9 +32,10 @@ export const Results = memo(function Results({
     ErrorResponse
   >({
     queryKey: ["people", search],
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       const response = await axios.get(
-        "/api/user/find?" + params.toString()
+        "/api/user/find?" + params.toString(),
+        { signal }
       );
       return response.data;
     },
@@ -123,9 +124,7 @@ export const Results = memo(function Results({
             {friendship.status === "friend" && (
               <>
                 <Button variant="ghost" asChild>
-                  <Link
-                    href={`${paths.userChat}/${username}`}
-                  >
+                  <Link href={`${paths.userChat}/${username}`}>
                     <MessageCircle className="self-center mr-2" />
                     <span>Chat</span>
                   </Link>
@@ -139,14 +138,13 @@ export const Results = memo(function Results({
                 />
               </>
             )}
-            {friendship.status === "none" &&
-              !friendship.self && (
-                <MakeRequest
-                  id={id}
-                  username={username!}
-                  search={search}
-                />
-              )}
+            {friendship.status === "none" && !friendship.self && (
+              <MakeRequest
+                id={id}
+                username={username!}
+                search={search}
+              />
+            )}
           </UserCard>
         )
       )}

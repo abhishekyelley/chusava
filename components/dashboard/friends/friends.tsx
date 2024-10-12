@@ -66,9 +66,10 @@ export function Friends() {
     ErrorResponse
   >({
     queryKey: ["dashboard", "friends"],
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       const response = await axios.get<FriendsResponse[]>(
-        "/api/friends"
+        "/api/friends",
+        { signal }
       );
       return response.data;
     },
