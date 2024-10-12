@@ -144,10 +144,7 @@ export function Lists({
               <Tooltip>
                 <Dialog open={open} onOpenChange={setOpen}>
                   <DialogTrigger>
-                    <TooltipTrigger
-                      className="rounded-full hover:bg-muted h-12 w-12 p-1 flex justify-center self-center"
-                      onClick={() => {}}
-                    >
+                    <TooltipTrigger className="rounded-full hover:bg-muted h-12 w-12 p-1 flex justify-center self-center" asChild>
                       <CirclePlus className="self-center transition-all ease-in-out duration-300" />
                     </TooltipTrigger>
                   </DialogTrigger>

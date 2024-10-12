@@ -1,7 +1,9 @@
 "use client";
 
+import { MediaCard } from "@/components/chats/media-card";
 import { MessageCard } from "@/components/chats/message-card";
 import { MessageCardSkeleton } from "@/components/chats/message-card-skeleton";
+import { Paginator } from "@/components/common/paginator";
 import { NoResults } from "@/components/dashboard/friends/no-results";
 import {
   Avatar,
@@ -12,16 +14,24 @@ import { Button } from "@/components/ui/button";
 import {
   CommandDialog,
   CommandEmpty,
-  CommandGroup,
   CommandInput,
   CommandItem,
   CommandList,
-  CommandSeparator,
 } from "@/components/ui/command";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { useDebounce } from "@/hooks/use-debounce";
 import axios from "@/lib/axios";
-import { paths, tmdb_base } from "@/lib/constants";
+import { paths } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { ConversationsResponse } from "@/types/api/conversations";
 import { Message } from "@/types/api/messages";
@@ -36,8 +46,36 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { CommandLoading } from "cmdk";
-import { Popcorn, Search } from "lucide-react";
+import { Loader, Popcorn, Search } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+
+function isMovie(
+  media: MovieSearchResponse | TVSearchResponse
+): media is MovieSearchResponse {
+  return media.results
+    ? media.results.length !== 0
+      ? (
+          media.results[0] as NonNullable<
+            MovieSearchResponse["results"]
+          >[0]
+        ).title !== undefined
+      : true
+    : true;
+}
+
+function isTV(
+  media: MovieSearchResponse | TVSearchResponse
+): media is TVSearchResponse {
+  return media.results
+    ? media.results.length !== 0
+      ? (
+          media.results[0] as NonNullable<
+            TVSearchResponse["results"]
+          >[0]
+        ).name !== undefined
+      : false
+    : false;
+}
 
 export default function Page({
   params: { listId, conversationId },
@@ -46,6 +84,9 @@ export default function Page({
 }) {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
+  const [type, setType] = useState("movie");
+  const [adult, setAdult] = useState(false);
+  const [page, setPage] = useState(1);
   const lastMessageRef = useRef<HTMLDivElement | null>(null);
   const query = useDebounce(value, 300);
   const queryClient = useQueryClient();
@@ -57,30 +98,37 @@ export default function Page({
   ]);
   const messages = useQuery({
     queryKey: ["messages", listId],
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       const response = await axios.get<Message[]>(
-        paths.api.messages`${listId}`
+        paths.api.messages`${listId}`,
+        { signal }
       );
       return response.data;
     },
   });
-  const movies = useQuery<MovieSearchResponse>({
-    queryKey: ["media", "movie", query],
-    queryFn: async () => {
-      const response = await axios.get<MovieSearchResponse>(
-        `/api/tmdb?query=${query}&type=movie`
-      );
-      return response.data;
+  const media = useQuery({
+    queryKey: ["media", type, query, adult, page],
+    queryFn: async ({ signal }) => {
+      const q = query.trim().toLowerCase();
+      if (!q || q === "" || (type !== "movie" && type !== "tv")) {
+        return null;
+      }
+      if (type === "movie") {
+        const response = await axios.get<MovieSearchResponse>(
+          `/api/tmdb?query=${q}&type=movie&include_adult=${adult}&page=${page}`,
+          { signal }
+        );
+        return response.data;
+      }
+      if (type === "tv") {
+        const response = await axios.get<TVSearchResponse>(
+          `/api/tmdb?query=${q}&type=tv`,
+          { signal }
+        );
+        return response.data;
+      }
     },
-  });
-  const shows = useQuery<TVSearchResponse>({
-    queryKey: ["media", "tv", query],
-    queryFn: async () => {
-      const response = await axios.get<TVSearchResponse>(
-        `/api/tmdb?query=${query}&type=tv`
-      );
-      return response.data;
-    },
+    staleTime: Infinity,
   });
   const sendMessage = useMutation({
     mutationFn: async ({
@@ -110,6 +158,10 @@ export default function Page({
         : null;
     }
   }, [messages]);
+  useEffect(() => {
+    setPage(1);
+  }, [query]);
+  const handlePageChange = (num: number) => setPage(num);
   return (
     <div className="w-full rounded-r-xl">
       <div className="rounded-tr-xl sticky top-0 z-10 w-full bg-background/95 shadow backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:shadow-secondary">
@@ -150,104 +202,141 @@ export default function Page({
       </div>
       <CommandDialog
         open={open}
-        onOpenChange={setOpen}
+        onOpenChange={(val) => {
+          if (val === false) {
+            setAdult(false);
+            setType("movie");
+            setPage(1);
+            setValue("");
+          }
+          setOpen(val);
+        }}
         commandProps={{ shouldFilter: false }}
         title="Media search"
         description="Search for a movie or tv show to send as a message"
       >
-        <CommandInput
-          placeholder="Type a command or search..."
-          value={value}
-          onValueChange={setValue}
-        />
+        <div className="flex w-[calc(100%-48px)]">
+          <div className="w-full">
+            <CommandInput
+              placeholder="Type a command or search..."
+              value={value}
+              onValueChange={setValue}
+            />
+          </div>
+          <div className="flex flex-col justify-center self-center">
+            <Select
+              value={type}
+              onValueChange={(val) => {
+                setPage(1);
+                setType(val);
+              }}
+            >
+              <SelectTrigger className="w-24 h-12 m-0 border-l border-t-0 rounded-none">
+                <SelectValue placeholder="Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Type</SelectLabel>
+                  <SelectItem value="tv">TV</SelectItem>
+                  <SelectItem value="movie">Movie</SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
+          <div
+            className={cn(
+              "w-max flex px-2 pr-4 space-x-2",
+              "border-l-0 border-r border-b rounded-br-md",
+              "self-center items-center h-12"
+            )}
+          >
+            <Switch
+              className="m-0 p-0"
+              id="adult"
+              checked={adult}
+              onCheckedChange={(checked) => {
+                setPage(1);
+                setAdult(checked);
+              }}
+            />
+            <label
+              htmlFor="adult"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            >
+              Adult
+            </label>
+          </div>
+        </div>
         <CommandList
           className={cn(
             "overflow-y-auto",
             "[&::-webkit-scrollbar-thumb]:rounded-md",
             "[&::-webkit-scrollbar]:w-2",
             "[&::-webkit-scrollbar-track]:bg-secondary",
-            "[&::-webkit-scrollbar-thumb]:bg-primary"
+            "[&::-webkit-scrollbar-thumb]:bg-primary",
+            "max-h-[60vh]"
           )}
         >
-          {(movies.isLoading || shows.isLoading) && (
-            <CommandLoading>Loading...</CommandLoading>
+          {media.isLoading ? (
+            <CommandLoading className="my-4">
+              <NoResults
+                message="Loading..."
+                subtitle="Finding stuff"
+                icon={Loader}
+                spin
+              />
+            </CommandLoading>
+          ) : (
+            <CommandEmpty>
+              <NoResults
+                message="Keep looking"
+                subtitle="Cause we found nutthin'"
+              />
+            </CommandEmpty>
           )}
-          <CommandEmpty>No results found.</CommandEmpty>
-
-          <CommandGroup heading="Movies">
-            {movies.data?.results?.length &&
-              movies.data.results.map((item) => (
-                <CommandItem key={item.id}>
-                  <button
-                    className="flex items-center space-x-2 w-full h-full"
-                    onClick={() =>
-                      sendMessage.mutate({
-                        tmdb_id: item.id,
-                        tmdb_type: "movie",
-                      })
-                    }
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={
-                        item.poster_path
-                          ? tmdb_base.image +
-                            "/original" +
-                            item.poster_path
-                          : ""
-                      }
-                      alt={`${item.title}-${item.id}-movie-poster`}
-                      className="h-[150px] w-auto rounded-md"
-                    />
-                    <span className="mr-1 font-bold">
-                      {item.title}
-                    </span>
-                    <span className="italic font-semibold text-muted-foreground">{`(${
-                      item.release_date?.split("-")[0] ?? "unknown"
-                    })`}</span>
-                  </button>
+          <div className="grid grid-cols-3">
+            {media.data &&
+              type === "movie" &&
+              isMovie(media.data) &&
+              media.data.results &&
+              media.data.results.map((item) => (
+                <CommandItem key={item.id} className="space-x-2 m-2">
+                  <MediaCard
+                    id={item.id}
+                    poster_path={item.poster_path}
+                    release_date={item.release_date}
+                    sendMessage={sendMessage.mutate}
+                    title={item.title}
+                    type={type}
+                  />
                 </CommandItem>
               ))}
-          </CommandGroup>
-
-          {(movies.data?.results?.length ||
-            shows.data?.results?.length) && <CommandSeparator />}
-          <CommandGroup heading="TV Shows">
-            {shows.data?.results?.length &&
-              shows.data.results.map((item) => (
-                <CommandItem key={item.id}>
-                  <button
-                    className="flex items-center space-x-2 w-full h-full"
-                    onClick={() =>
-                      sendMessage.mutate({
-                        tmdb_id: item.id,
-                        tmdb_type: "tv",
-                      })
-                    }
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={
-                        item.poster_path
-                          ? tmdb_base.image +
-                            "/original" +
-                            item.poster_path
-                          : ""
-                      }
-                      alt={`${item.name}-${item.id}-tv-poster`}
-                      className="h-[150px] w-auto rounded-md"
-                    />
-                    <span className="mr-1 font-bold">
-                      {item.name}
-                    </span>
-                    <span className="italic font-semibold text-muted-foreground">{`(${
-                      item.first_air_date?.split("-")[0] ?? "unknown"
-                    })`}</span>
-                  </button>
+            {media.data &&
+              type === "tv" &&
+              isTV(media.data) &&
+              media.data.results &&
+              media.data.results.map((item) => (
+                <CommandItem key={item.id} className="space-x-2 m-2">
+                  <MediaCard
+                    id={item.id}
+                    poster_path={item.poster_path}
+                    release_date={item.first_air_date}
+                    sendMessage={sendMessage.mutate}
+                    title={item.name}
+                    type={type}
+                  />
                 </CommandItem>
               ))}
-          </CommandGroup>
+          </div>
         </CommandList>
+        <div className="my-4">
+          <Paginator
+            total_pages={media.data?.total_pages}
+            total_results={media.data?.total_results}
+            page={page}
+            handleChange={handlePageChange}
+          />
+        </div>
       </CommandDialog>
       {/* Real stuff start here */}
       <ScrollArea
