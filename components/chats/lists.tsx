@@ -17,7 +17,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { ListCard } from "./list-card";
+import { ListCard } from "@/components/chats/list-card";
 import { Database } from "@/types/supabase";
 import { UsersResponse } from "@/types/api/user";
 import { paths } from "@/lib/constants";
@@ -32,7 +32,8 @@ import {
 } from "../ui/dialog";
 import { Button } from "../ui/button";
 import { DialogTrigger } from "@radix-ui/react-dialog";
-import { useState } from "react";
+import { useCallback, useState } from "react";
+import { ListCardSkeleton } from "./list-card-skeleton";
 
 type Lists = Array<
   Database["public"]["Tables"]["conversation_lists"]["Row"] & {
@@ -47,7 +48,10 @@ export function Lists({
 }) {
   const pathname = usePathname();
   const queryClient = useQueryClient();
+  // for adding lists
   const [name, setName] = useState("");
+  // for filtering lists
+  const [value, setValue] = useState("");
   const [open, setOpen] = useState(false);
   const lists = useQuery<Lists>({
     queryKey: ["lists", conversationId],
@@ -132,6 +136,19 @@ export function Lists({
       setOpen(false);
     },
   });
+  const getLists = useCallback(() => {
+    if (!lists.data) {
+      return [];
+    }
+    const query = value.trim().toLowerCase();
+    if (!query) {
+      return lists.data;
+    }
+    return lists.data.filter(({ name }) => {
+      name = name.toLowerCase();
+      return name.includes(query);
+    });
+  }, [lists.data, value]);
   return (
     <ScrollArea className="h-[80dvh]" type="always">
       <div className="w-[300px]">
@@ -144,7 +161,10 @@ export function Lists({
               <Tooltip>
                 <Dialog open={open} onOpenChange={setOpen}>
                   <DialogTrigger>
-                    <TooltipTrigger className="rounded-full hover:bg-muted h-12 w-12 p-1 flex justify-center self-center" asChild>
+                    <TooltipTrigger
+                      className="rounded-full hover:bg-muted h-12 w-12 p-1 flex justify-center self-center"
+                      asChild
+                    >
                       <CirclePlus className="self-center transition-all ease-in-out duration-300" />
                     </TooltipTrigger>
                   </DialogTrigger>
@@ -200,6 +220,8 @@ export function Lists({
                 className="pl-9 disabled:cursor-default"
                 placeholder="Search lists..."
                 id="lists-search"
+                value={value}
+                onChange={(e) => setValue(e.target.value)}
               />
               <Label htmlFor="lists-search">
                 <Search className="absolute left-0 top-0 m-2.5 h-4 w-4 text-muted-foreground" />
@@ -209,11 +231,18 @@ export function Lists({
         </div>
         {/* Real Stuff goes here */}
         <div className="p-4 pt-2">
-          {lists.isLoading && <p>Loading...</p>}
+          {lists.isLoading && (
+            <>
+              <ListCardSkeleton />
+              <ListCardSkeleton />
+              <ListCardSkeleton />
+              <ListCardSkeleton />
+            </>
+          )}
           {lists.isError && <p>Error!</p>}
           {lists.data && (
             <>
-              {lists.data.map((list) => (
+              {getLists().map((list) => (
                 <ListCard
                   key={list.id}
                   listId={list.list.id}
