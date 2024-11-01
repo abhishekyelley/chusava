@@ -71,7 +71,7 @@ export function Convos() {
   }
   return (
     <ScrollArea className="h-[80dvh]" type="always">
-      <div className={cn(isOpen ? "w-[300px]" : "w-full")}>
+      <div className={cn(isOpen ? "md:w-[300px] w-full" : "w-full")}>
         <div className="rounded-tl-xl sticky top-0 pl-4 mr-4 pt-4 pb-2 bg-background z-50">
           <div
             className={cn(
@@ -98,14 +98,14 @@ export function Convos() {
                 >
                   <Maximize2
                     className={cn(
-                      "self-center",
+                      "self-center hidden md:flex",
                       "transition-all ease-in-out duration-300",
                       isOpen ? "opacity-0 w-0" : "-rotate-[360deg]"
                     )}
                   />
                   <Minimize2
                     className={cn(
-                      "self-center",
+                      "self-center hidden md:flex",
                       "transition-all ease-in-out duration-300",
                       isOpen ? "-rotate-[360deg]" : "opacity-0 w-0"
                     )}

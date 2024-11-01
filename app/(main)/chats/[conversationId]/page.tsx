@@ -3,7 +3,7 @@ import { Theater } from "lucide-react";
 
 export default function Page() {
   return (
-    <div className="flex self-center justify-center w-full">
+    <div className="self-center justify-center w-full md:flex hidden">
       <NoResults
         message="Looks like there's more..."
         subtitle="Pick a list now"

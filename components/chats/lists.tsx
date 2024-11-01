@@ -150,8 +150,8 @@ export function Lists({
     });
   }, [lists.data, value]);
   return (
-    <ScrollArea className="h-[80dvh]" type="always">
-      <div className="w-[300px]">
+    <ScrollArea className="h-[80dvh] w-full" type="always">
+      <div className="md:w-[300px] w-full">
         <div className="rounded-tl-xl sticky top-0 pl-4 mr-4 pt-4 pb-2 bg-background z-50">
           <div className="flex justify-between items-center transition-all ease-in-out duration-300">
             <h3 className="w-max text-3xl font-bold overflow-hidden transition-all ease-in-out duration-300">
