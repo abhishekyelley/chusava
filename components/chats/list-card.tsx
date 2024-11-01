@@ -112,7 +112,7 @@ export function ListCard({
           )}
         >
           <Link
-            href={`${paths.chats}/${conversationId}/${listId}`}
+            href={`${paths.chats}/${conversationId}/lists/${listId}/messages`}
             className="w-full mr-2 block"
           >
             <TooltipTrigger className="my-2 w-full pr-1" asChild>

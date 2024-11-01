@@ -23,11 +23,7 @@ export default function Layout({
       <Card>
         <CardContent className="p-0">
           <div className="flex h-min">
-            {mediumScreen ? (
-              <div className="md:w-min w-full h-[80dvh]">
-                <Convos />
-              </div>
-            ) : pathname.endsWith(paths.chats) ? (
+            {mediumScreen || pathname.endsWith(paths.chats) ? (
               <div className="md:w-min w-full h-[80dvh]">
                 <Convos />
               </div>

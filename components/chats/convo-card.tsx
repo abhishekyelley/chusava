@@ -49,7 +49,7 @@ export function ConvoCard({
           id={id}
           asChild
         >
-          <Link href={`${paths.chats}/${id}`}>
+          <Link href={`${paths.chats}/${id}/lists`}>
           <div
             className={cn(
               "rounded-md py-2 my-2",
