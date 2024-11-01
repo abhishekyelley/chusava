@@ -10,7 +10,7 @@ export async function GET(
   try {
     const supabase = createClient();
     const { data, error } = await supabase
-      .from("messages")
+      .from("messages_with_watched")
       .select()
       .eq("list_id", listId)
       .order("created_at", {

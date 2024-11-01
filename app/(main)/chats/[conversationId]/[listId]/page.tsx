@@ -18,6 +18,8 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Select,
@@ -46,8 +48,9 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { CommandLoading } from "cmdk";
-import { Loader, Popcorn, Search } from "lucide-react";
+import { Film, Loader, Popcorn, Search } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 
 function isMovie(
   media: MovieSearchResponse | TVSearchResponse
@@ -84,6 +87,7 @@ export default function Page({
 }) {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
+  const [recSearch, setRecSearch] = useState("");
   const [type, setType] = useState("movie");
   const [adult, setAdult] = useState(false);
   const [page, setPage] = useState(1);
@@ -96,7 +100,7 @@ export default function Page({
   const currentUserData = queryClient.getQueryData<UserResponse>([
     "user",
   ]);
-  const messages = useQuery({
+  const messages = useQuery<Message[]>({
     queryKey: ["messages", listId],
     queryFn: async ({ signal }) => {
       const response = await axios.get<Message[]>(
@@ -151,13 +155,149 @@ export default function Page({
       setOpen(false);
     },
   });
+  const deleteMessage = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await axios.delete<null>(
+        paths.api.messagesId`${id}`
+      );
+      return response.data;
+    },
+    onMutate: async (id: string) => {
+      await queryClient.cancelQueries({
+        queryKey: ["messages", listId],
+      });
+      const oldData = queryClient.getQueryData<Message[]>([
+        "messages",
+        listId,
+      ]);
+      queryClient.setQueryData<Message[]>(
+        ["messages", listId],
+        (old) => {
+          return old ? old.filter((item) => item.id !== id) : [];
+        }
+      );
+      return oldData;
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["messages", listId],
+        exact: true,
+        refetchType: "all",
+      });
+    },
+    onError: (error, data, context) => {
+      queryClient.setQueryData<Message[]>(
+        ["messages", listId],
+        context as Message[]
+      );
+      toast.error("Could not delete the rec");
+      console.error(error);
+    },
+    onSuccess: () => {
+      toast.success("Rec deleted");
+    },
+  });
+  const watchedInsert = useMutation<
+    null,
+    Error,
+    { id: string; tmdb_type: string; tmdb_id: number }
+  >({
+    mutationFn: async ({ tmdb_type, tmdb_id }) => {
+      const response = await axios.post(
+        paths.api.tmdb.watched`${tmdb_type}${tmdb_id}`
+      );
+      return response.data;
+    },
+    onMutate: async ({ id }) => {
+      await queryClient.cancelQueries({
+        queryKey: ["messages", listId],
+      });
+      const oldData = queryClient.getQueryData<Message[]>([
+        "messages",
+        listId,
+      ]);
+      queryClient.setQueryData<Message[]>(
+        ["messages", listId],
+        (old) => {
+          return old
+            ? old.map((item) =>
+                item.id !== id ? item : { ...item, watched: true }
+              )
+            : [];
+        }
+      );
+      return oldData;
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["messages", listId],
+        exact: true,
+        refetchType: "all",
+      });
+    },
+    onError: (error, data, context) => {
+      queryClient.setQueryData<Message[]>(
+        ["messages", listId],
+        context as Message[]
+      );
+      toast.error("Could not add rec to watched");
+      console.error(error);
+    },
+  });
+  const watchedDelete = useMutation<
+    null,
+    Error,
+    { id: string; tmdb_type: string; tmdb_id: number }
+  >({
+    mutationFn: async ({ tmdb_type, tmdb_id }) => {
+      const response = await axios.delete(
+        paths.api.tmdb.watched`${tmdb_type}${tmdb_id}`
+      );
+      return response.data;
+    },
+    onMutate: async ({ id }) => {
+      await queryClient.cancelQueries({
+        queryKey: ["messages", listId],
+      });
+      const oldData = queryClient.getQueryData<Message[]>([
+        "messages",
+        listId,
+      ]);
+      queryClient.setQueryData<Message[]>(
+        ["messages", listId],
+        (old) => {
+          return old
+            ? old.filter((item) =>
+                item.id !== id ? item : { ...item, watched: false }
+              )
+            : [];
+        }
+      );
+      return oldData;
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["messages", listId],
+        exact: true,
+        refetchType: "all",
+      });
+    },
+    onError: (error, data, context) => {
+      queryClient.setQueryData<Message[]>(
+        ["messages", listId],
+        context as Message[]
+      );
+      toast.error("Could not remove rec from watched");
+      console.error(error);
+    },
+  });
   useEffect(() => {
-    if (!messages.isLoading && !messages.isError && messages.data) {
+    if (!messages.isLoading) {
       lastMessageRef.current
         ? lastMessageRef.current.scrollIntoView()
         : null;
     }
-  }, [messages]);
+  }, [messages.isLoading]);
   useEffect(() => {
     setPage(1);
   }, [query]);
@@ -340,7 +480,7 @@ export default function Page({
       </CommandDialog>
       {/* Real stuff start here */}
       <ScrollArea
-        className="h-[calc(80dvh-72px-72px)] w-full"
+        className="h-[calc(80dvh-48px-72px)] w-full"
         type="hover"
       >
         <div className="p-8">
@@ -365,7 +505,7 @@ export default function Page({
             messages.data.length > 0 &&
             messages.data.map((item, index) => (
               <div
-                key={item.id}
+                key={item.id!}
                 ref={
                   index === messages.data.length - 1
                     ? lastMessageRef
@@ -376,14 +516,60 @@ export default function Page({
                   {...item}
                   currentUserData={currentUserData}
                   conversationId={conversationId}
+                  deleteMutate={() => deleteMessage.mutate(item.id!)}
+                  deletePending={deleteMessage.isPending}
+                  addToWatched={() =>
+                    watchedInsert.mutate({
+                      id: item.id!,
+                      tmdb_id: item.tmdb_id!,
+                      tmdb_type: item.tmdb_type!,
+                    })
+                  }
+                  removeFromWatched={() =>
+                    watchedDelete.mutate({
+                      id: item.id!,
+                      tmdb_id: item.tmdb_id!,
+                      tmdb_type: item.tmdb_type!,
+                    })
+                  }
+                  watched={!!item.watched}
                 />
               </div>
             ))}
         </div>
       </ScrollArea>
-      <div className="h-[72px] flex items-center justify-center">
-        <Button onClick={() => setOpen(true)}>Send a rec</Button>
-      </div>
+      <form
+        className={cn(
+          "h-[48px] flex items-center justify-center",
+          "rounded-br-lg border-t",
+          "focus-within:outline-none focus-within:ring-1 focus-within:ring-ring px-1"
+        )}
+        onSubmit={(e) => {
+          e.preventDefault();
+          setOpen(true);
+          setValue(recSearch);
+          setRecSearch("");
+        }}
+      >
+        <div className="relative w-full h-full">
+          <Input
+            className="pl-9 disabled:cursor-default h-full border-none focus-visible:ring-0"
+            placeholder="Send a Rec..."
+            id="rec-search"
+            name="rec-search"
+            value={recSearch}
+            onChange={(e) => setRecSearch(e.target.value)}
+          />
+          <Label htmlFor="placeholder-search">
+            <Film className="absolute left-0 top-1.5 m-2.5 h-4 w-4 text-muted-foreground" />
+          </Label>
+        </div>
+        <Button type="submit" variant="ghost" disabled={!recSearch}>
+          <Search />
+        </Button>
+      </form>
+      {/* <div className="h-[72px] flex items-center justify-center">
+      </div> */}
     </div>
   );
 }

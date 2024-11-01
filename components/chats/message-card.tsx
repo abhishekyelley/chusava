@@ -10,7 +10,7 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
-import { CalendarIcon, Ellipsis } from "lucide-react";
+import { CalendarIcon, Ellipsis, Trash } from "lucide-react";
 import {
   Avatar,
   AvatarFallback,
@@ -38,6 +38,23 @@ import Link from "next/link";
 import Image from "next/image";
 import { MessageCardSkeleton } from "./message-card-skeleton";
 import { Watched } from "@/components/chats/watched";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const fac = new FastAverageColor();
 
@@ -48,9 +65,19 @@ export function MessageCard({
   sender,
   currentUserData,
   conversationId,
+  deleteMutate,
+  deletePending,
+  watched,
+  addToWatched,
+  removeFromWatched,
 }: Message & {
   currentUserData?: UserResponse;
   conversationId: string;
+  deleteMutate: () => void;
+  deletePending: boolean;
+  watched: boolean;
+  addToWatched: () => void;
+  removeFromWatched: () => void;
 }) {
   const [shadowColor, setShadowColor] = useState<string | null>(null);
   const [isHovering, setIsHovering] = useState(false);
@@ -124,7 +151,6 @@ export function MessageCard({
         ? currentUserData?.avatar
         : senderData?.avatar,
   };
-  const [watched, setWatched] = useState(false);
   return (
     <>
       {tmdb.isError && <p>Error</p>}
@@ -192,7 +218,8 @@ export function MessageCard({
                     <div className="flex justify-center">
                       <Watched
                         watched={watched}
-                        setWatched={setWatched}
+                        addToWatched={addToWatched}
+                        removeFromWatched={removeFromWatched}
                       />
                     </div>
                   </div>
@@ -399,7 +426,8 @@ export function MessageCard({
                   >
                     <Watched
                       watched={watched}
-                      setWatched={setWatched}
+                      addToWatched={addToWatched}
+                      removeFromWatched={removeFromWatched}
                       className="rounded-r-none border-r px-2"
                     />
                     <div className="flex justify-center items-center self-center">
@@ -413,12 +441,69 @@ export function MessageCard({
                           : null}
                       </p>
                     </div>
-                    <Button
-                      variant="ghost"
-                      className="rounded-l-none border-l px-2"
-                    >
-                      <Ellipsis />
-                    </Button>
+                    <DropdownMenu modal>
+                      <AlertDialog>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>
+                              Are you absolutely sure?
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action cannot be undone. This will
+                              permanently delete{" "}
+                              <span className="font-extrabold">
+                                {tmdb_type === "movie"
+                                  ? (tmdb.data as MovieResponse).title
+                                  : tmdb_type === "tv"
+                                  ? (tmdb.data as TVResponse).name
+                                  : null}
+                              </span>{" "}
+                              from this list.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>
+                              Cancel
+                            </AlertDialogCancel>
+                            <AlertDialogAction
+                              className="bg-red-600 text-white hover:bg-red-800"
+                              onClick={() => {
+                                deleteMutate();
+                              }}
+                            >
+                              <span className="self-center flex">
+                                <Trash className="self-center mr-2" />
+                                <span className="self-center">
+                                  Delete
+                                </span>
+                              </span>
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            className="rounded-l-none border-l px-2"
+                          >
+                            <Ellipsis />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <AlertDialogTrigger asChild>
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.stopPropagation();
+                              }}
+                              className="text-red-600"
+                              disabled={deletePending}
+                            >
+                              <Trash className="h-4 w-4 mr-2" />{" "}
+                              Delete
+                            </DropdownMenuItem>
+                          </AlertDialogTrigger>
+                        </DropdownMenuContent>
+                      </AlertDialog>
+                    </DropdownMenu>
                   </div>
                 </div>
                 <HoverCardContent

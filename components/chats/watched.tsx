@@ -11,12 +11,14 @@ import { EyeClosedIcon } from "@radix-ui/react-icons";
 
 export function Watched({
   watched,
-  setWatched,
+  addToWatched,
+  removeFromWatched,
   className = "border",
 }: {
   watched: boolean;
-  setWatched: React.Dispatch<React.SetStateAction<boolean>>;
   className?: string;
+  addToWatched: () => void;
+  removeFromWatched: () => void;
 }) {
   return (
     <TooltipProvider delayDuration={100}>
@@ -25,7 +27,9 @@ export function Watched({
           <Button
             variant={watched ? "default" : "ghost"}
             className={className}
-            onClick={() => setWatched((prev) => !prev)}
+            onClick={() => {
+              watched ? removeFromWatched() : addToWatched();
+            }}
           >
             <div className="h-6 w-6 items-center self-center flex justify-center">
               <Eye

@@ -1,4 +1,4 @@
-const paths = {
+const paths = Object.freeze({
   dashboard: "/dashboard",
   account: "/account",
   login: "/login",
@@ -11,40 +11,61 @@ const paths = {
   api: {
     lists: "/api/chats/lists",
     conversations: "/api/chats/conversations",
-    messages: function (
-      strings: TemplateStringsArray,
-      listId: string
-    ) {
+    messages(strings: TemplateStringsArray, listId: string) {
       return `${this.lists}/${listId}/messages`;
     },
-    conversationsId: function (
+    conversationsId(
       strings: TemplateStringsArray,
       conversationId: string
     ) {
       return `${this.conversations}/${conversationId}`;
     },
-    conversationUsers: function (
+    conversationUsers(
       strings: TemplateStringsArray,
       conversationId: string
     ) {
       return `${this.conversations}/${conversationId}/users`;
     },
-    listsUpdate: (strings: TemplateStringsArray, listId: string) =>
-      `/api/chats/lists/${listId}`,
+    listsUpdate(strings: TemplateStringsArray, listId: string) {
+      return `/api/chats/lists/${listId}`;
+    },
+    messagesId(strings: TemplateStringsArray, messageId: string) {
+      return `/api/chats/messages/${messageId}`;
+    },
+    tmdb: {
+      root(
+        strings: TemplateStringsArray,
+        tmdb_type: string,
+        tmdb_id: number
+      ) {
+        return `/api/tmdb/${tmdb_type}/${tmdb_id}`;
+      },
+      watched(
+        strings: TemplateStringsArray,
+        tmdb_type: string,
+        tmdb_id: number
+      ) {
+        return this.root`${tmdb_type}${tmdb_id}` + "/watched";
+      },
+      images(
+        strings: TemplateStringsArray,
+        tmdb_type: string,
+        tmdb_id: number
+      ) {
+        return this.root`${tmdb_type}${tmdb_id}` + "/images";
+      },
+    },
   },
-} as const;
-Object.freeze(paths);
+});
 
-const brand = {
+const brand = Object.freeze({
   name: "chusava",
   description: "Keep track of your movie suggestions.",
-};
-Object.freeze(brand);
+});
 
-const tmdb_base = {
+const tmdb_base = Object.freeze({
   home: "https://www.themoviedb.org",
   image: "https://image.tmdb.org/t/p",
-};
-Object.freeze(tmdb_base);
+});
 
 export { paths, brand, tmdb_base };
