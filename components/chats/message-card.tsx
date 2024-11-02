@@ -16,7 +16,6 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@/components/ui/avatar";
-import { UserResponse } from "@/types/api/user";
 import moment from "moment";
 import { tmdb_base } from "@/lib/constants";
 import {
@@ -56,6 +55,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useConversationParticipants } from "@/hooks/use-conversation-participants";
+import { useUserInfo } from "@/hooks/use-user-info";
 
 const fac = new FastAverageColor();
 
@@ -64,7 +64,6 @@ export function MessageCard({
   tmdb_id,
   tmdb_type,
   sender,
-  currentUserData,
   conversationId,
   deleteMutate,
   deletePending,
@@ -72,7 +71,6 @@ export function MessageCard({
   addToWatched,
   removeFromWatched,
 }: Message & {
-  currentUserData?: UserResponse;
   conversationId: string;
   deleteMutate: () => void;
   deletePending: boolean;
@@ -84,6 +82,7 @@ export function MessageCard({
   const [open, setOpen] = useState(false);
   const conversationParticipants =
     useConversationParticipants(conversationId);
+  const currentUserData = useUserInfo();
   const senderData = conversationParticipants.find(
     (item) => item.id === sender
   );

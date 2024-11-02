@@ -1,29 +1,26 @@
+import { UserResponse } from "@/types/api/user";
 import { Database } from "@/types/supabase";
-import { createClient } from "@/utils/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
 
 export type UserInfo = Database["public"]["Tables"]["users"]["Row"];
 
 export function useUserInfo() {
-  const supabase = createClient();
-  const [data, setData] = useState<UserInfo | null>(null);
-  const getUserInfo = useCallback(async () => {
-    const { data: { user }, error: getUserError } = await supabase.auth.getUser();
-    if (getUserError || !user) {
-      throw new Error("No user in seesion");
+  const queryClient = useQueryClient();
+  const [userData, setUserData] = useState<UserResponse | null>(null);
+  const ensureQueryData = useCallback(async () => {
+    try {
+      const data = await queryClient.ensureQueryData<UserResponse>({
+        queryKey: ["user"],
+      });
+      setUserData({ ...data });
+    } catch (err) {
+      console.log("!!TANSTACK ERROR!!");
+      console.error(err);
     }
-    const { data, error } = await supabase
-      .from("users")
-      .select()
-      .eq("id", user.id)
-      .single();
-    if (error || !data) {
-      throw new Error("Could not find user in database");
-    }
-    setData(() => ({ ...data }));
-  }, [supabase])
+  }, [queryClient]);
   useEffect(() => {
-    getUserInfo();
-  }, [getUserInfo]);
-  return data;
+    ensureQueryData();
+  }, [ensureQueryData]);
+  return userData;
 }

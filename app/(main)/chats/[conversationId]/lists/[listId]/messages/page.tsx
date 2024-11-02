@@ -10,6 +10,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   CommandDialog,
@@ -18,6 +19,24 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -38,20 +57,30 @@ import axios from "@/lib/axios";
 import { paths } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { Message } from "@/types/api/messages";
-import { UserResponse } from "@/types/api/user";
 import {
   MovieSearchResponse,
   TVSearchResponse,
 } from "@/types/tmdb/tmdb";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { EyeClosedIcon } from "@radix-ui/react-icons";
 import {
   useMutation,
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
 import { CommandLoading } from "cmdk";
-import { Film, Loader, Popcorn, Search } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import {
+  Eye,
+  Film,
+  Filter,
+  Loader,
+  Popcorn,
+  Search,
+} from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { z } from "zod";
 
 function isMovie(
   media: MovieSearchResponse | TVSearchResponse
@@ -81,11 +110,18 @@ function isTV(
     : false;
 }
 
+const FilterFormSchema = z.object({
+  watched: z
+    .union([z.literal("true"), z.literal("false"), z.null()])
+    .optional(),
+});
+
 export default function Page({
   params: { listId, conversationId },
 }: {
   params: { listId: string; conversationId: string };
 }) {
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
   const [recSearch, setRecSearch] = useState("");
@@ -97,16 +133,27 @@ export default function Page({
   const queryClient = useQueryClient();
   const conversationData = useConversation(conversationId);
   const lists = useLists(conversationId);
-  console.log(lists);
   const listData = lists.find((item) => item.list_id === listId);
-  const currentUserData = queryClient.getQueryData<UserResponse>([
-    "user",
-  ]);
+  const filtersForm = useForm<z.infer<typeof FilterFormSchema>>({
+    resolver: zodResolver(FilterFormSchema),
+    defaultValues: {
+      watched: null,
+    },
+  });
+  const [filters, setFilters] = useState<
+    z.infer<typeof FilterFormSchema>
+  >({});
   const messages = useQuery<Message[]>({
-    queryKey: ["messages", listId],
+    queryKey: ["messages", listId, filters],
     queryFn: async ({ signal }) => {
+      const searchParams = new URLSearchParams();
+      Object.keys(filters).forEach((item) => {
+        const key = item as keyof typeof filters;
+        searchParams.append(key, String(filters[key]));
+      });
+      searchParams.append;
       const response = await axios.get<Message[]>(
-        paths.api.messages`${listId}`,
+        paths.api.messages`${listId}` + "?" + searchParams.toString(),
         { signal }
       );
       return response.data;
@@ -152,7 +199,7 @@ export default function Page({
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: ["messages", listId],
+        queryKey: ["messages", listId, filters],
       });
       setOpen(false);
     },
@@ -170,14 +217,14 @@ export default function Page({
     },
     onMutate: async (id: string) => {
       await queryClient.cancelQueries({
-        queryKey: ["messages", listId],
+        queryKey: ["messages", listId, filters],
       });
       const oldData = queryClient.getQueryData<Message[]>([
         "messages",
         listId,
       ]);
       queryClient.setQueryData<Message[]>(
-        ["messages", listId],
+        ["messages", listId, filters],
         (old) => {
           return old ? old.filter((item) => item.id !== id) : [];
         }
@@ -186,14 +233,14 @@ export default function Page({
     },
     onSettled: () => {
       queryClient.invalidateQueries({
-        queryKey: ["messages", listId],
+        queryKey: ["messages", listId, filters],
         exact: true,
         refetchType: "all",
       });
     },
     onError: (error, data, context) => {
       queryClient.setQueryData<Message[]>(
-        ["messages", listId],
+        ["messages", listId, filters],
         context as Message[]
       );
       toast.error("Could not delete the rec");
@@ -216,14 +263,14 @@ export default function Page({
     },
     onMutate: async ({ id }) => {
       await queryClient.cancelQueries({
-        queryKey: ["messages", listId],
+        queryKey: ["messages", listId, filters],
       });
       const oldData = queryClient.getQueryData<Message[]>([
         "messages",
         listId,
       ]);
       queryClient.setQueryData<Message[]>(
-        ["messages", listId],
+        ["messages", listId, filters],
         (old) => {
           return old
             ? old.map((item) =>
@@ -236,14 +283,14 @@ export default function Page({
     },
     onSettled: () => {
       queryClient.invalidateQueries({
-        queryKey: ["messages", listId],
+        queryKey: ["messages", listId, filters],
         exact: true,
         refetchType: "all",
       });
     },
     onError: (error, data, context) => {
       queryClient.setQueryData<Message[]>(
-        ["messages", listId],
+        ["messages", listId, filters],
         context as Message[]
       );
       toast.error("Could not add rec to watched");
@@ -263,14 +310,14 @@ export default function Page({
     },
     onMutate: async ({ id }) => {
       await queryClient.cancelQueries({
-        queryKey: ["messages", listId],
+        queryKey: ["messages", listId, filters],
       });
       const oldData = queryClient.getQueryData<Message[]>([
         "messages",
         listId,
       ]);
       queryClient.setQueryData<Message[]>(
-        ["messages", listId],
+        ["messages", listId, filters],
         (old) => {
           return old
             ? old.filter((item) =>
@@ -283,7 +330,7 @@ export default function Page({
     },
     onSettled: () => {
       queryClient.invalidateQueries({
-        queryKey: ["messages", listId],
+        queryKey: ["messages", listId, filters],
         exact: true,
         refetchType: "all",
       });
@@ -307,7 +354,28 @@ export default function Page({
   useEffect(() => {
     setPage(1);
   }, [query]);
-  const handlePageChange = (num: number) => setPage(num);
+  const handlePageChange = useCallback(
+    (num: number) => setPage(num),
+    []
+  );
+  const filtersApplied = useCallback(() => {
+    let count = 0;
+    Object.keys(filters).forEach((item) => {
+      const key = item as keyof typeof filters;
+      if (!!filters[key]) {
+        count++;
+      }
+    });
+
+    return count;
+  }, [filters]);
+  const onSubmit = useCallback(
+    (data: z.infer<typeof FilterFormSchema>) => {
+      setFilters({ ...data });
+      setFiltersOpen(false);
+    },
+    []
+  );
   return (
     <div className="w-full rounded-r-xl">
       <div className="rounded-tr-xl sticky top-0 z-10 w-full bg-background/95 shadow backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:shadow-secondary">
@@ -342,6 +410,120 @@ export default function Page({
             </div>
           </div>
           <div className="flex flex-1 items-center space-x-2 justify-end">
+            <Dialog open={filtersOpen} onOpenChange={setFiltersOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className={cn("rounded-full", "h-12 w-12 p-1")}
+                >
+                  <div className="relative">
+                    <Filter
+                      className={cn(
+                        filtersApplied() ? "text-primary" : ""
+                      )}
+                    />
+                    {filtersApplied() > 0 && (
+                      <Badge className="absolute flex justify-center w-full left-4 -top-3 rounded-full">
+                        <span className="text-center items-center self-center">
+                          {filtersApplied()}
+                        </span>
+                      </Badge>
+                    )}
+                  </div>
+                </Button>
+              </DialogTrigger>
+              <div className="h-full"></div>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Filter</DialogTitle>
+                  <DialogDescription>
+                    Filter your recs.
+                  </DialogDescription>
+                </DialogHeader>
+                <Form {...filtersForm}>
+                  <form onSubmit={filtersForm.handleSubmit(onSubmit)}>
+                    <FormField
+                      control={filtersForm.control}
+                      name="watched"
+                      render={({ field }) => (
+                        <FormItem>
+                          <div className="grid grid-cols-6 items-center">
+                            <FormLabel className="col-span-2">
+                              Watched
+                            </FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              defaultValue={field.value || ""}
+                              value={field.value || ""}
+                            >
+                              <FormControl className="col-span-3">
+                                <SelectTrigger className="w-[180px]">
+                                  <SelectValue placeholder="Select status" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectGroup>
+                                  <SelectLabel>Watched</SelectLabel>
+                                  <SelectItem value="true">
+                                    <span className="flex items-center">
+                                      <EyeClosedIcon className="mr-2" />
+                                      Watched
+                                    </span>
+                                  </SelectItem>
+                                  <SelectItem value="false">
+                                    <span className="flex items-center">
+                                      <Eye className="mr-2" />
+                                      Unwatched
+                                    </span>
+                                  </SelectItem>
+                                </SelectGroup>
+                              </SelectContent>
+                            </Select>
+                            <Button
+                              className="col-span-1"
+                              variant="outline"
+                              type="button"
+                              onClick={() =>
+                                filtersForm.setValue("watched", null)
+                              }
+                            >
+                              Clear
+                            </Button>
+                          </div>
+                          <FormDescription className="text-right">
+                            Filter recs by your watched status
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <DialogFooter
+                      className="mt-4 grid grid-cols-4 gap-2"
+                      dir="rtl"
+                    >
+                      <Button
+                        type="reset"
+                        className="col-span-1 -order-1"
+                        variant="destructive"
+                        onClick={() => {
+                          filtersForm.reset();
+                          setFilters({});
+                          setFiltersOpen(false);
+                        }}
+                      >
+                        Clear All
+                      </Button>
+                      <Button
+                        type="submit"
+                        className="col-span-1 -order-2"
+                      >
+                        Apply
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </Form>
+              </DialogContent>
+            </Dialog>
             <Button
               variant="ghost"
               className="rounded-full h-12 w-12 p-1"
@@ -543,7 +725,6 @@ export default function Page({
               >
                 <MessageCard
                   {...item}
-                  currentUserData={currentUserData}
                   conversationId={conversationId}
                   deleteMutate={() => deleteMessage.mutate(item.id!)}
                   deletePending={deleteMessage.isPending}
@@ -586,6 +767,7 @@ export default function Page({
             id="rec-search"
             name="rec-search"
             value={recSearch}
+            autoComplete="off"
             onChange={(e) => setRecSearch(e.target.value)}
           />
           <Label htmlFor="placeholder-search">

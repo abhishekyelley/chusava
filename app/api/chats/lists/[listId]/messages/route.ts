@@ -9,13 +9,22 @@ export async function GET(
 ) {
   try {
     const supabase = createClient();
-    const { data, error } = await supabase
+    const searchParams = request.nextUrl.searchParams;
+    const watched = searchParams.get("watched");
+    const query = supabase
       .from("messages_with_watched")
       .select()
       .eq("list_id", listId)
       .order("created_at", {
         ascending: true,
       });
+    if (watched === "true") {
+      query.eq("watched", true);
+    }
+    if (watched === "false") {
+      query.eq("watched", false);
+    }
+    const { data, error } = await query;
     if (error) {
       throw new SupabaseError(error);
     }
