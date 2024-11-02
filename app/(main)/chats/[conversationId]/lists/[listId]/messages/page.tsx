@@ -31,11 +31,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { useConversation } from "@/hooks/use-conversations";
 import { useDebounce } from "@/hooks/use-debounce";
 import axios from "@/lib/axios";
 import { paths } from "@/lib/constants";
 import { cn } from "@/lib/utils";
-import { ConversationsResponse } from "@/types/api/conversations";
 import { Message } from "@/types/api/messages";
 import { UserResponse } from "@/types/api/user";
 import {
@@ -94,9 +94,7 @@ export default function Page({
   const lastMessageRef = useRef<HTMLDivElement | null>(null);
   const query = useDebounce(value, 300);
   const queryClient = useQueryClient();
-  const conversationData = queryClient
-    .getQueryData<ConversationsResponse>(["conversations"])
-    ?.find((item) => item.conversation_id === conversationId);
+  const conversationData = useConversation(conversationId);
   const currentUserData = queryClient.getQueryData<UserResponse>([
     "user",
   ]);
@@ -250,7 +248,7 @@ export default function Page({
     { id: string; tmdb_type: string; tmdb_id: number }
   >({
     mutationFn: async ({ tmdb_type, tmdb_id }) => {
-      const response = await axios.delete(
+      const response = await axios.delete<null>(
         paths.api.tmdb.watched`${tmdb_type}${tmdb_id}`
       );
       return response.data;
@@ -440,7 +438,11 @@ export default function Page({
               isMovie(media.data) &&
               media.data.results &&
               media.data.results.map((item) => (
-                <CommandItem key={item.id} value={String(item.id)} className="space-x-2 m-2">
+                <CommandItem
+                  key={item.id}
+                  value={String(item.id)}
+                  className="space-x-2 m-2"
+                >
                   <MediaCard
                     id={item.id}
                     poster_path={item.poster_path}
@@ -532,7 +534,6 @@ export default function Page({
                       tmdb_type: item.tmdb_type!,
                     })
                   }
-                  watched={!!item.watched}
                 />
               </div>
             ))}

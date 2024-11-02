@@ -75,7 +75,6 @@ export function MessageCard({
   conversationId: string;
   deleteMutate: () => void;
   deletePending: boolean;
-  watched: boolean;
   addToWatched: () => void;
   removeFromWatched: () => void;
 }) {
@@ -217,7 +216,7 @@ export function MessageCard({
                     </div>
                     <div className="flex justify-center">
                       <Watched
-                        watched={watched}
+                        watched={!!watched}
                         addToWatched={addToWatched}
                         removeFromWatched={removeFromWatched}
                       />
@@ -425,7 +424,7 @@ export function MessageCard({
                     )}
                   >
                     <Watched
-                      watched={watched}
+                      watched={!!watched}
                       addToWatched={addToWatched}
                       removeFromWatched={removeFromWatched}
                       className="rounded-r-none border-r px-2"
