@@ -440,7 +440,7 @@ export default function Page({
               isMovie(media.data) &&
               media.data.results &&
               media.data.results.map((item) => (
-                <CommandItem key={item.id} className="space-x-2 m-2">
+                <CommandItem key={item.id} value={String(item.id)} className="space-x-2 m-2">
                   <MediaCard
                     id={item.id}
                     poster_path={item.poster_path}
