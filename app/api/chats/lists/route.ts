@@ -7,7 +7,6 @@ export async function POST(request: NextRequest) {
   try {
     const supabase = createClient();
     const user = await getUser();
-    console.log(user.id);
     const { name, conversationId } = await request.json();
     if (!name.trim()) {
       throw new Error("Name cannot be empty");

@@ -92,7 +92,7 @@ export function Lists({
     },
     onError: (error) => {
       toast.error("Could not rename the List");
-      console.log(error);
+      console.error(error);
     },
     onSuccess: () => {
       toast.success("Successfully renamed list");
@@ -119,7 +119,7 @@ export function Lists({
     },
     onError: (error) => {
       toast.error("Could not create a New List");
-      console.log(error);
+      console.error(error);
     },
     onSuccess: () => {
       toast.success("Successfully created a New List");
