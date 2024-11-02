@@ -33,6 +33,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { useConversation } from "@/hooks/use-conversations";
 import { useDebounce } from "@/hooks/use-debounce";
+import { useLists } from "@/hooks/use-lists";
 import axios from "@/lib/axios";
 import { paths } from "@/lib/constants";
 import { cn } from "@/lib/utils";
@@ -95,6 +96,9 @@ export default function Page({
   const query = useDebounce(value, 300);
   const queryClient = useQueryClient();
   const conversationData = useConversation(conversationId);
+  const lists = useLists(conversationId);
+  console.log(lists);
+  const listData = lists.find((item) => item.list_id === listId);
   const currentUserData = queryClient.getQueryData<UserResponse>([
     "user",
   ]);
@@ -321,10 +325,15 @@ export default function Page({
                     />
                   </Avatar>
                 </div>
-                <p className="font-semibold">
-                  {conversationData?.first_name}{" "}
-                  {conversationData?.last_name}
-                </p>
+                <div className="block">
+                  <p className="font-semibold">
+                    {conversationData?.first_name}{" "}
+                    {conversationData?.last_name}
+                  </p>
+                  <p className="text-muted-foreground">
+                    {listData?.list.name}
+                  </p>
+                </div>
               </div>
             </div>
           </div>

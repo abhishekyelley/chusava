@@ -2,7 +2,7 @@ import axios from "@/lib/axios";
 import { cn } from "@/lib/utils";
 import { Message } from "@/types/api/messages";
 import { MovieResponse, TVResponse } from "@/types/tmdb/tmdb";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { FastAverageColor } from "fast-average-color";
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -16,7 +16,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@/components/ui/avatar";
-import { UserResponse, UsersResponse } from "@/types/api/user";
+import { UserResponse } from "@/types/api/user";
 import moment from "moment";
 import { tmdb_base } from "@/lib/constants";
 import {
@@ -55,6 +55,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { useConversationParticipants } from "@/hooks/use-conversation-participants";
 
 const fac = new FastAverageColor();
 
@@ -81,13 +82,11 @@ export function MessageCard({
   const [shadowColor, setShadowColor] = useState<string | null>(null);
   const [isHovering, setIsHovering] = useState(false);
   const [open, setOpen] = useState(false);
-  const queryClient = useQueryClient();
-  const senderData = queryClient
-    .getQueryData<UsersResponse[]>([
-      "conversation_users",
-      conversationId,
-    ])
-    ?.find((item) => item.id === sender);
+  const conversationParticipants =
+    useConversationParticipants(conversationId);
+  const senderData = conversationParticipants.find(
+    (item) => item.id === sender
+  );
   const tmdb = useQuery({
     queryKey: [
       "tmdb",

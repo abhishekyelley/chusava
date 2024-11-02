@@ -18,7 +18,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { ListCard } from "@/components/chats/list-card";
-import { Database } from "@/types/supabase";
+import { ListsResponse } from "@/types/chats";
 import { UsersResponse } from "@/types/api/user";
 import { paths } from "@/lib/constants";
 import { usePathname } from "next/navigation";
@@ -29,17 +29,12 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "../ui/dialog";
-import { Button } from "../ui/button";
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { DialogTrigger } from "@radix-ui/react-dialog";
 import { useCallback, useState } from "react";
 import { ListCardSkeleton } from "./list-card-skeleton";
-
-type Lists = Array<
-  Database["public"]["Tables"]["conversation_lists"]["Row"] & {
-    list: Database["public"]["Tables"]["lists"]["Row"];
-  }
->;
+import { useConversation } from "@/hooks/use-conversations";
 
 export function Lists({
   conversationId,
@@ -53,10 +48,11 @@ export function Lists({
   // for filtering lists
   const [value, setValue] = useState("");
   const [open, setOpen] = useState(false);
-  const lists = useQuery<Lists>({
+  const conversationData = useConversation(conversationId);
+  const lists = useQuery<ListsResponse>({
     queryKey: ["lists", conversationId],
     queryFn: async ({ signal }) => {
-      const response = await axios.get<Lists>(
+      const response = await axios.get<ListsResponse>(
         paths.api.conversationsId`${conversationId}`,
         { signal }
       );
@@ -64,7 +60,7 @@ export function Lists({
     },
   });
   useQuery<UsersResponse[]>({
-    queryKey: ["conversation_users", conversationId],
+    queryKey: ["conversation_participants", conversationId],
     queryFn: async ({ signal }) => {
       const response = await axios.get<UsersResponse[]>(
         paths.api.conversationUsers`${conversationId}`,
@@ -231,6 +227,12 @@ export function Lists({
         </div>
         {/* Real Stuff goes here */}
         <div className="p-4 pt-2">
+          <p className="text-muted-foreground">
+            with{" "}
+            <span className="italic">
+              {`${conversationData?.first_name} ${conversationData?.last_name}`}
+            </span>
+          </p>
           {lists.isLoading && (
             <>
               <ListCardSkeleton />
