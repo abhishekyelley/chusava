@@ -5,7 +5,7 @@ import { ThemeProvider } from "@/providers/theme-provider";
 import { brand } from "@/lib/constants";
 import { Toaster } from "@/components/ui/sonner";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { queryClient } from "@/lib/queryClient";
+import { queryClient } from "@/lib/query-client";
 
 const geistSans = localFont({
   src: "../fonts/GeistVF.woff",
