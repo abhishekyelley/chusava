@@ -14,22 +14,13 @@ export function MediaCard({
   poster_path: string | undefined;
   title: string | undefined;
   release_date: string | undefined;
-  sendMessage: ({
-    tmdb_id,
-    tmdb_type,
-  }: {
-    tmdb_id: number;
-    tmdb_type: "movie" | "tv";
-  }) => void;
+  sendMessage: () => void;
 }) {
   return (
     <button
       className="flex flex-col items-center w-full h-full"
       onClick={() => {
-        sendMessage({
-          tmdb_id: id,
-          tmdb_type: type,
-        });
+        sendMessage();
       }}
     >
       {poster_path ? (

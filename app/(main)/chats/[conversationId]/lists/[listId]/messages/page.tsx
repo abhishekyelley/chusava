@@ -156,6 +156,10 @@ export default function Page({
       });
       setOpen(false);
     },
+    onError: (error) => {
+      console.error(error);
+      toast.error("Rec already exists in list");
+    },
   });
   const deleteMessage = useMutation({
     mutationFn: async (id: string) => {
@@ -456,7 +460,12 @@ export default function Page({
                     id={item.id}
                     poster_path={item.poster_path}
                     release_date={item.release_date}
-                    sendMessage={sendMessage.mutate}
+                    sendMessage={() =>
+                      sendMessage.mutate({
+                        tmdb_id: item.id,
+                        tmdb_type: type,
+                      })
+                    }
                     title={item.title}
                     type={type}
                   />
@@ -467,12 +476,21 @@ export default function Page({
               isTV(media.data) &&
               media.data.results &&
               media.data.results.map((item) => (
-                <CommandItem key={item.id} className="space-x-2 m-2">
+                <CommandItem
+                  key={item.id}
+                  value={String(item.id)}
+                  className="space-x-2 m-2"
+                >
                   <MediaCard
                     id={item.id}
                     poster_path={item.poster_path}
                     release_date={item.first_air_date}
-                    sendMessage={sendMessage.mutate}
+                    sendMessage={() =>
+                      sendMessage.mutate({
+                        tmdb_id: item.id,
+                        tmdb_type: type,
+                      })
+                    }
                     title={item.name}
                     type={type}
                   />
