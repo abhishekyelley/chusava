@@ -2,19 +2,12 @@
 
 Local Development:
 
-> Prerequisite: Supabase CLI
-
-First time setup
-
-```bash
-supabase login
-supabase link
-supabase db push
-```
+> Prerequisite: Supabase CLI, Docker
 
 To start supabase
 
 ```bash
+supabase migration up
 supabase start
 ```
 
