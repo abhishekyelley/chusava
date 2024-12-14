@@ -32,7 +32,10 @@ export function LoginForm({
       <form action={formAction}>
         <Fields />
       </form>
-      <Link href={paths.signup}>
+      <Link
+        href={paths.signup}
+        className="underline underline-offset-4 hover:text-primary"
+      >
         Don{"'"}t have an account? Signup
       </Link>
     </div>

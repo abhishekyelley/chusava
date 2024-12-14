@@ -31,7 +31,12 @@ export function SignupForm({
       <form action={formAction}>
         <Fields />
       </form>
-      <Link href={paths.login}>Already have an account? Login</Link>
+      <Link
+        href={paths.login}
+        className="underline underline-offset-4 hover:text-primary"
+      >
+        Already have an account? Login
+      </Link>
     </div>
   );
 }
