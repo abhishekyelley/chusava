@@ -59,7 +59,7 @@ export function Lists({
       return response.data;
     },
   });
-  useQuery<UsersResponse[]>({
+  const conversationParticipants = useQuery<UsersResponse[]>({
     queryKey: ["conversation_participants", conversationId],
     queryFn: async ({ signal }) => {
       const response = await axios.get<UsersResponse[]>(
@@ -230,7 +230,11 @@ export function Lists({
           <p className="text-muted-foreground">
             with{" "}
             <span className="italic">
-              {`${conversationData?.first_name} ${conversationData?.last_name}`}
+              {conversationData?.first_name
+                ? `${conversationData?.first_name} ${conversationData?.last_name}`
+                : conversationParticipants.data
+                    ?.map((item) => item.first_name)
+                    .joinWithLimit()}
             </span>
           </p>
           {lists.isLoading && (

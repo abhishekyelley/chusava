@@ -376,6 +376,15 @@ export default function Page({
     },
     []
   );
+  const initials =
+    conversationData?.conversation_type === "group"
+      ? conversationData.group_name
+        ? conversationData.group_name.charAt(0).toUpperCase()
+        : "?"
+      : conversationData?.first_name && conversationData?.last_name
+      ? conversationData.first_name.charAt(0) +
+        conversationData.last_name.charAt(0)
+      : "?";
   return (
     <div className="w-full rounded-r-xl">
       <div className="rounded-tr-xl sticky top-0 z-10 w-full bg-background/95 shadow backdrop-blur supports-[backdrop-filter]:bg-background/60 dark:shadow-secondary">
@@ -386,10 +395,7 @@ export default function Page({
                 <div className="mr-4">
                   <Avatar className="h-12 w-12 border border-gray-600 justify-center z-20">
                     <AvatarFallback className="bg-transparent self-center">
-                      {conversationData?.first_name?.charAt(0)
-                        ? conversationData?.first_name?.charAt(0) +
-                          conversationData?.last_name?.charAt(0)
-                        : "?"}
+                      {initials}
                     </AvatarFallback>
                     <AvatarImage
                       className="object-cover"
@@ -399,8 +405,9 @@ export default function Page({
                 </div>
                 <div className="block">
                   <p className="font-semibold">
-                    {conversationData?.first_name}{" "}
-                    {conversationData?.last_name}
+                    {conversationData?.conversation_type === "group"
+                      ? conversationData.group_name
+                      : `${conversationData?.first_name} ${conversationData?.last_name}`}
                   </p>
                   <p className="text-muted-foreground">
                     {listData?.list.name}

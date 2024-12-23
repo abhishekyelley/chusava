@@ -15,16 +15,33 @@ import {
   TooltipContent,
 } from "@/components/ui/tooltip";
 import { useQuery } from "@tanstack/react-query";
-import { Ellipsis, Maximize2, Minimize2, Search } from "lucide-react";
+import {
+  Ellipsis,
+  Maximize2,
+  MessageSquarePlus,
+  Minimize2,
+  Search,
+} from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { paths } from "@/lib/constants";
 import { ConversationsResponse } from "@/types/api/conversations";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
 
 export function Convos() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(true);
   const [didUserOpen, setDidUserOpen] = useState(false);
+  const [groupDialogOpen, setGroupDialogOpen] = useState(false);
   const [value, setValue] = useState("");
   useEffect(() => {
     if (!pathname.endsWith(paths.chats) && !didUserOpen) {
@@ -130,14 +147,80 @@ export function Convos() {
             )}
           >
             <div className="relative w-full">
-              <Input
-                className="pl-9 disabled:cursor-default"
-                placeholder="Search conversations..."
-                id="chats-search"
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-                disabled={!isOpen}
-              />
+              <div className="flex gap-1">
+                <Input
+                  className="pl-9 disabled:cursor-default"
+                  placeholder="Search conversations..."
+                  id="chats-search"
+                  value={value}
+                  onChange={(e) => setValue(e.target.value)}
+                  disabled={!isOpen}
+                />
+                {isOpen && (
+                  <TooltipProvider delayDuration={100}>
+                    <Tooltip>
+                      <Dialog
+                        open={groupDialogOpen}
+                        onOpenChange={setGroupDialogOpen}
+                      >
+                        <DialogTrigger asChild>
+                          <TooltipTrigger asChild>
+                            <Button variant="outline">
+                              <MessageSquarePlus className="self-center transition-all ease-in-out duration-300" />
+                            </Button>
+                          </TooltipTrigger>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[425px]">
+                          <form
+                            onSubmit={(e) => {
+                              e.preventDefault();
+                              // addList.mutate({ name });
+                            }}
+                            className="space-y-4"
+                          >
+                            <DialogHeader>
+                              <DialogTitle>New Group</DialogTitle>
+                              <DialogDescription>
+                                Add members to your group.
+                              </DialogDescription>
+                            </DialogHeader>
+                            <div className="grid gap-4 py-4">
+                              <div className="grid grid-cols-4 items-center gap-4">
+                                <Label
+                                  htmlFor="name"
+                                  className="text-right"
+                                >
+                                  Name
+                                </Label>
+                                <Input
+                                  id="name"
+                                  className="col-span-3"
+                                  // value={name}
+                                  // onChange={(e) =>
+                                  //   setName(e.target.value)
+                                  // }
+                                />
+                              </div>
+                            </div>
+                            <DialogFooter>
+                              <Button
+                                type="submit"
+                                // disabled={addList.isPending}
+                              >
+                                {/* {addList.isPending
+                                  ? "Saving..."
+                                  : "Save"} */}
+                                Save
+                              </Button>
+                            </DialogFooter>
+                          </form>
+                        </DialogContent>
+                      </Dialog>
+                      <TooltipContent>New Group</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
+              </div>
               <Label htmlFor="chats-search">
                 <Search className="absolute left-0 top-0 m-2.5 h-4 w-4 text-muted-foreground" />
               </Label>
@@ -151,6 +234,8 @@ export function Convos() {
               conversation_id,
               first_name,
               last_name,
+              group_name,
+              conversation_type,
               username,
               avatar,
             }) => {
@@ -158,11 +243,13 @@ export function Convos() {
                 <ConvoCard
                   key={conversation_id}
                   id={conversation_id!}
-                  first_name={first_name!}
-                  last_name={last_name!}
-                  username={username!}
+                  first_name={first_name}
+                  last_name={last_name}
+                  username={username}
                   image={avatar}
                   isOpen={isOpen}
+                  isGroup={conversation_type === "group"}
+                  group_name={group_name}
                   pathname={pathname}
                 />
               );
